@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { Handler, Api } from 'tque';
 declare type StaticApi<UserApi extends object> = {
     registerFinalizer(fn: Function): Services<UserApi>;
@@ -7,11 +6,8 @@ declare type StaticApi<UserApi extends object> = {
         [key: string]: unknown;
     }, pattern?: RegExp): unknown;
 } & UserApi;
-export declare type Services<UserApi extends object> = Api<StaticApi<UserApi>, any>;
-export declare function staticPages<UserApi extends object = {}>(userApi?: UserApi): (controllers?: Handler<Services<UserApi>, any>[]) => {
-    (data: any): Promise<any[]>;
-    stream(data: any): import("stream").Readable;
-} & {
-    finalize(): void;
+export declare type Services<UserApi extends object = {}> = Api<StaticApi<UserApi>, any>;
+export declare function staticPages<UserApi extends object = {}>(userApi?: UserApi): ((data: any, controllers?: Handler<Services<UserApi>, any>[]) => Promise<any[]>) & {
+    finalize(): Promise<void>;
 };
 export {};
