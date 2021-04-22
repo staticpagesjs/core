@@ -1,0 +1,36 @@
+{
+  "name": "@static-pages/core",
+  "version": "0.0.0",
+  "description": "General purpose static pages renderer.",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/staticpagesjs/core.git"
+  },
+  "keywords": [
+    "static",
+    "pages",
+    "renderer",
+    "mvc",
+    "view",
+    "controller",
+    "transform",
+    "template"
+  ],
+  "author": "László BULIK",
+  "license": "MPL-2.0",
+  "bugs": {
+    "url": "https://github.com/staticpagesjs/core/issues"
+  },
+  "homepage": "https://github.com/staticpagesjs/core#readme",
+  "dependencies": {
+    "tque": "0.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^12.20.10",
+    "typescript": "^4.2.4"
+  }
+}
