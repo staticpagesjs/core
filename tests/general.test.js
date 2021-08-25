@@ -2,6 +2,7 @@ const { Readable, Writable } = require('stream');
 const static = require('../lib/cjs/index').default;
 
 const seq = n => Array.from(new Array(n)).map((v, i) => ({ a: i }));
+
 const iterableReader = function* (source) { yield* source; };
 const asyncIterableReader = async function* (source) { yield* source; };
 const streamReader = function (source) {
@@ -25,6 +26,12 @@ const logStreamWriter = new Writable({
 test('it passes trough the input data with minimal configuration', async () => {
     const input = seq(5);
     const expected = seq(5);
+
+    await static([{
+        from: {
+            reader: input
+        }
+    }])
 
     const staticPagesWorker = staticPages();
     const output = await staticPagesWorker(input);
