@@ -1,6 +1,26 @@
-const { staticPages } = require('../lib/index');
+const { Readable, Writable } = require('stream');
+const static = require('../lib/cjs/index').default;
 
 const seq = n => Array.from(new Array(n)).map((v, i) => ({ a: i }));
+const iterableReader = function* (source) { yield* source; };
+const asyncIterableReader = async function* (source) { yield* source; };
+const streamReader = function (source) {
+    return new Readable({
+        objectMode: true,
+        read() {
+            this.push(source.shift() || null);
+        }
+    });
+};
+
+const logStreamWriter = new Writable({
+    objectMode: true,
+    write(chunk, encoding, callback) {
+        console.log(chunk);
+        callback();
+    }
+});
+
 
 test('it passes trough the input data with minimal configuration', async () => {
     const input = seq(5);
@@ -26,7 +46,7 @@ test('has all the custom api features', async () => {
         }
     ]);
 
-    expect(output).toStrictEqual([{ }]);
+    expect(output).toStrictEqual([{}]);
 });
 
 test('can finalize', async () => {
