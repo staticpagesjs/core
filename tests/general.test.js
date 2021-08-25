@@ -1,5 +1,5 @@
 const { Readable, Writable } = require('stream');
-const static = require('../lib/cjs/index').default;
+const staticPages = require('../lib/cjs/index').default;
 
 const seq = n => Array.from(new Array(n)).map((v, i) => ({ a: i }));
 
@@ -27,14 +27,13 @@ test('it passes trough the input data with minimal configuration', async () => {
     const input = seq(5);
     const expected = seq(5);
 
-    await static([{
-        from: {
-            reader: input
-        }
-    }])
+    const output = [];
+    const writer = item => output.push(item);
 
-    const staticPagesWorker = staticPages();
-    const output = await staticPagesWorker(input);
+    await staticPages([{
+        from: input,
+        to: writer,
+    }]);
 
     expect(output).toStrictEqual(expected);
 });
