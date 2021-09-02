@@ -38,6 +38,70 @@ test('it passes trough the input data with minimal configuration', async () => {
     expect(output).toStrictEqual(expected);
 });
 
+test('works on iterable inputs', async () => {
+    const input = iterableReader(seq(5));
+    const expected = seq(5);
+
+    const output = [];
+    const writer = item => output.push(item);
+
+    await staticPages([{
+        from: input,
+        to: writer,
+    }]);
+
+    expect(output).toStrictEqual(expected);
+});
+
+test('works on async iterable inputs', async () => {
+    const input = asyncIterableReader(seq(5));
+    const expected = seq(5);
+
+    const output = [];
+    const writer = item => output.push(item);
+
+    await staticPages([{
+        from: input,
+        to: writer,
+    }]);
+
+    expect(output).toStrictEqual(expected);
+});
+
+test('works on object stream inputs', async () => {
+    const input = streamReader(seq(5));
+    const expected = seq(5);
+
+    const output = [];
+    const writer = item => output.push(item);
+
+    await staticPages([{
+        from: input,
+        to: writer,
+    }]);
+
+    expect(output).toStrictEqual(expected);
+});
+
+test('it executes the controller with a simple return properly', async () => {
+    const input = seq(5);
+    const expected = seq(5).map(x => ({ a: x.a + 1 }));
+
+    const output = [];
+    const writer = item => output.push(item);
+
+    await staticPages([{
+        from: input,
+        to: writer,
+        controller: (d) => ({ a: d.a + 1 }),
+    }]);
+
+    expect(output).toStrictEqual(expected);
+});
+
+
+
+/*
 test('has all the custom api features', async () => {
     const staticPagesWorker = staticPages({
         userFunctions() { }
@@ -101,3 +165,4 @@ test('can interpolate', async () => {
 
     expect(finalized).toBe(true);
 });
+*/
