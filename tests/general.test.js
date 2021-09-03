@@ -22,7 +22,6 @@ const logStreamWriter = new Writable({
     }
 });
 
-
 test('it passes trough the input data with minimal configuration', async () => {
     const input = seq(5);
     const expected = seq(5);
@@ -83,7 +82,7 @@ test('works on object stream inputs', async () => {
     expect(output).toStrictEqual(expected);
 });
 
-test('it executes the controller with a simple return properly', async () => {
+test('it executes the controller which can alter the output', async () => {
     const input = seq(5);
     const expected = seq(5).map(x => ({ a: x.a + 1 }));
 
@@ -99,70 +98,38 @@ test('it executes the controller with a simple return properly', async () => {
     expect(output).toStrictEqual(expected);
 });
 
+test('controller can insert additional items to output', async () => {
+    const input = seq(5);
+    const expected = [];
+    for (let i = 0; i < input.length; i++) {
+        expected.push({ a: input[i].a + 1 });
+        expected.push({ b: input[i].a });
+    }
 
+    const output = [];
+    const writer = item => output.push(item);
 
-/*
-test('has all the custom api features', async () => {
-    const staticPagesWorker = staticPages({
-        userFunctions() { }
-    });
+    await staticPages([{
+        from: input,
+        to: writer,
+        controller: (d) => [{ a: d.a + 1 }, { b: d.a }], // output two items for each input item
+    }]);
 
-    const output = await staticPagesWorker({}, [
-        function () {
-            if (typeof this.bindArgs !== 'function') return { missing: 'bindArgs' };
-            if (typeof this.interpolate !== 'function') return { missing: 'interpolate' };
-            if (typeof this.registerFinalizer !== 'function') return { missing: 'registerFinalizer' };
-            if (typeof this.userFunctions !== 'function') return { missing: 'userFunctions' };
-        }
-    ]);
-
-    expect(output).toStrictEqual([{}]);
+    expect(output).toStrictEqual(expected);
 });
 
-test('can finalize', async () => {
-    const staticPagesWorker = staticPages();
+test('controller can remove items from output', async () => {
+    const input = seq(5);
+    const expected = seq(5).filter(x => x.a % 2 === 0);
 
-    let finalized = false;
-    const finalizer = () => {
-        finalized = true;
-    };
+    const output = [];
+    const writer = item => output.push(item);
 
-    await staticPagesWorker({}, [
-        function () {
-            this.registerFinalizer(finalizer);
-        }
-    ]);
+    await staticPages([{
+        from: input,
+        to: writer,
+        controller: (d) => d.a % 2 === 0 ? d : undefined, // mod2? d / nothing
+    }]);
 
-    expect(finalized).toBe(false);
-
-    await staticPagesWorker.finalize();
-
-    expect(finalized).toBe(true);
+    expect(output).toStrictEqual(expected);
 });
-
-test('can interpolate', async () => {
-    const staticPagesWorker = staticPages();
-
-    await staticPagesWorker({
-        person: {
-            first: 'Lionel',
-            last: 'Twain'
-        },
-        name: '${person.first} ${person.last}',
-        nameObject: '${person}'
-    }, [
-        function ({ name, nameObject }) {
-            return {
-                name: this.interpolate(name),
-                nameObject: this.interpolate(nameObject),
-            };
-        }
-    ]);
-
-    expect(finalized).toBe(false);
-
-    await staticPagesWorker.finalize();
-
-    expect(finalized).toBe(true);
-});
-*/
