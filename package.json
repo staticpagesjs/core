@@ -20,12 +20,13 @@
   "keywords": [
     "static",
     "pages",
+    "generator",
     "renderer",
     "mvc",
+    "jamstack",
     "view",
-    "controller",
-    "transform",
-    "template"
+    "template",
+    "controller"
   ],
   "author": "László BULIK",
   "license": "MPL-2.0",
