@@ -76,5 +76,16 @@ type Data = { [k: string]: unknown };
 You can define additional properties at the same level as the `from`, `to` and `controller` keys.
 These user defined properties are accessible through the `this` context variable of the controller.
 
+```js
+require("@static-pages/core").default([{
+    from: ...,
+    to: ...,
+    controller: function(data) {
+        this.myProp; // <-- 123
+    },
+    myProp: 123,
+}]);
+```
+
 ## Missing a feature?
 Create an issue describing your needs. If it fits the scope of the project I will implement it or you can implement it your own and submit a pull request.
