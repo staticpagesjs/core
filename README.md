@@ -18,7 +18,7 @@ And because I wrote a ton of custom static generators before; I tought I can imp
 This project targets small and medium sized projects. The rendering process tries to be as fast as possible so its also useful when you need performance.
 
 ## Documentation
-[Visit the project page.](https://static-pages-js.github.io/)
+[Visit the project page.](https://staticpagesjs.github.io/)
 
 ## Usage
 This package contains only the core; this means it does not provides CLI support or readers/writers. You import this library to your JS project then configure it there.
