@@ -21,7 +21,7 @@ This project targets small and medium sized projects. The rendering process trie
 [Visit the project page.](https://staticpagesjs.github.io/)
 
 ## Usage
-This package contains only the core; this means it does not provides CLI support or readers/writers. You import this library to your JS project then configure it there.
+This package contains only the core; this means it does not provides CLI support or readers and writers. You can import this library to your JS project then configure it there.
 
 ```js
 const staticPages = require("@static-pages/core").default;
