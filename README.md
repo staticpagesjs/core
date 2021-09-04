@@ -12,7 +12,7 @@ Yes! Because I browsed the whole jamstack scene, but could not find one which
 8. easy to extend with JS code
 9. learning and using is easy (Gatsby, Hugo, Jekyll, Eleventy etc. are so cool but harder to learn and configure)
 
-And because I wrote a ton of custom static generators before; I tought I can improve the concepts to a point where its useful (hopefully) for others.
+And because I wrote a ton of custom static generators before; I tought I can improve the concepts to a point where its (hopefully) useful for others.
 
 ## Where should I use this?
 This project targets small and medium sized projects. The rendering process tries to be as fast as possible so its also useful when you need performance.
