@@ -6,6 +6,7 @@
   "module": "lib/esm/index.js",
   "browser": "lib/esm/index.js",
   "scripts": {
+    "prepack": "npm run build",
     "build": "npm run build:esm && npm run build:cjs",
     "build:esm": "tsc --outDir lib/esm",
     "build:cjs": "tsc --outDir lib/cjs --module commonjs",
