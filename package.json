@@ -1,6 +1,6 @@
 {
   "name": "@static-pages/core",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "General purpose static pages renderer.",
   "main": "lib/cjs/index.js",
   "module": "lib/esm/index.js",
