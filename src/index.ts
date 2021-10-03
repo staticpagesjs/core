@@ -15,7 +15,7 @@ export default async (routes: Route | Route[]): Promise<void> => {
       throw new Error(`Route type mismatch, expected 'object', got '${getType(route)}'.`);
 
     const { from, to, controller, ...userOptions } = route;
-    if (!(Symbol.iterator in from || Symbol.asyncIterator in from))
+    if (typeof (from as any)[Symbol.iterator] !== 'function' && typeof (from as any)[Symbol.asyncIterator] !== 'function')
       throw new Error(`Route 'from' is not an 'iterable' or an 'asyncIterable'.`);
 
     if (typeof to !== 'function')
