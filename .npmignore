@@ -1,5 +1,6 @@
 /tsconfig.json
 /tests/
 /src/
+/coverage/
 *.log
 *.tgz
