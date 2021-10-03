@@ -1,5 +1,8 @@
 # Static Pages / Core
 
+[![Build Status](https://app.travis-ci.com/staticpagesjs/core.svg?branch=master)](https://app.travis-ci.com/staticpagesjs/core)
+[![Coverage Status](https://coveralls.io/repos/github/staticpagesjs/core/badge.svg?branch=master)](https://coveralls.io/github/staticpagesjs/core?branch=master)
+
 This package contains only the core; this means it does not provide CLI support or readers and writers.
 You can import this library to your JS project then add your own controllers, readers and writers.
 
