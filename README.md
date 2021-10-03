@@ -1,5 +1,8 @@
 # Static Pages / Core
 
+This package contains only the core; this means it does not provide CLI support or readers and writers.
+You can import this library to your JS project then add your own controllers, readers and writers.
+
 Yet another static pages generator?
 Yes! Because I browsed the whole jamstack scene, but could not find one which
 1. uses MVC pattern
@@ -21,8 +24,6 @@ This project targets small and medium sized projects. The rendering process trie
 [Visit the project page.](https://staticpagesjs.github.io/)
 
 ## Usage
-This package contains only the core; this means it does not provide CLI support or readers and writers. You can import this library to your JS project then add your own controllers, readers and writers.
-
 __Readers__ provides an iterable list of page data. __Controllers__ can manipulate and extend each data object. __Writers__ render the final output for you.
 
 ```js
