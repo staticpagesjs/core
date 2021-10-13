@@ -43,8 +43,8 @@ staticPages([{
     }),
     to: twigWriter({
         view: "content.html.twig",
-        views: "path/to/views/folder",
-        out: "path/to/output/folder",
+        viewsDir: "path/to/views/folder",
+        outDir: "path/to/output/folder",
     }),
     controller: function(data) {
         data.timestamp = new Date().toJSON(); // adds a "timestamp" variable
@@ -56,8 +56,8 @@ staticPages([{
     }),
     to: twigWriter({
         view: "home.html.twig",
-        views: "path/to/views/folder",
-        out: "path/to/output/folder",
+        viewsDir: "path/to/views/folder",
+        outDir: "path/to/output/folder",
     }),
     controller: function(data) {
         data.commitHash = yourGetCommitHashFn();
