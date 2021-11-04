@@ -1,4 +1,4 @@
-export type Data = { [key: string]: unknown };
+export type Data = Record<string, unknown>;
 export type Controller = (data: Data) => undefined | Data | Data[] | Promise<undefined | Data | Data[]>;
 export type Route = {
 	from: Iterable<Data> | AsyncIterable<Data>;
