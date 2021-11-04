@@ -31,3 +31,11 @@ test('it shoult throw when "controller" is not a function', async () => {
     .rejects
     .toThrow('Route');
 });
+
+test('it shoult throw when from and to is undefined', async () => {
+  await expect(async () => {
+    await staticPages({ from: undefined, to: undefined });
+  })
+    .rejects
+    .toThrow('Route');
+});

@@ -9,6 +9,12 @@ export type Route = {
 
 const getType = (x: unknown): string => typeof x === 'object' ? (x ? 'object' : 'null') : typeof x;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const isIterable = <T>(x: any): x is Iterable<T> => typeof x?.[Symbol.iterator] === 'function';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const isAsyncIterable = <T>(x: any): x is AsyncIterable<T> => typeof x?.[Symbol.asyncIterator] === 'function';
+
 export default async (routes: Route | Route[]): Promise<void> => {
 	for (const route of Array.isArray(routes) ? routes : [routes]) {
 		if (typeof route !== 'object' || !route)
@@ -16,8 +22,7 @@ export default async (routes: Route | Route[]): Promise<void> => {
 
 		const { from, to, controller, ...userOptions } = route;
 
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		if (typeof (from as any)?.[Symbol.iterator] !== 'function' && typeof (from as any)?.[Symbol.asyncIterator] !== 'function')
+		if (!isIterable(from) && !isAsyncIterable(from))
 			throw new Error('Route \'from\' is not an \'iterable\' or an \'asyncIterable\'.');
 
 		if (typeof to !== 'function')
