@@ -2,18 +2,26 @@
   "name": "@static-pages/core",
   "version": "1.0.3",
   "description": "General purpose static pages renderer.",
-  "main": "lib/cjs/index.js",
-  "module": "lib/esm/index.js",
-  "browser": "lib/esm/index.js",
+  "type": "module",
+  "main": "./cjs/index.js",
+  "module": "./esm/index.js",
+  "browser": "./esm/index.js",
+  "exports": {
+    ".": {
+      "require": "./cjs/index.js",
+      "default": "./esm/index.js"
+    }
+  },
   "scripts": {
     "prepack": "npm run build",
     "build": "npm run build:esm && npm run build:cjs",
-    "build:esm": "tsc --outDir lib/esm",
-    "build:cjs": "tsc --outDir lib/cjs --module commonjs --target ES2019",
-    "watch:esm": "tsc --watch --outDir lib/esm",
-    "watch:cjs": "tsc --watch --outDir lib/cjs --module commonjs --target ES2019",
+    "build:esm": "tsc",
+    "build:cjs": "tsc --outDir cjs --module commonjs",
+    "watch:esm": "tsc --watch",
+    "watch:cjs": "tsc --watch --outDir cjs --module commonjs",
     "test": "eslint src && npm run build && jest",
-    "coverage": "jest --coverage && cat ./coverage/lcov.info | coveralls"
+    "coverage": "jest --coverage && cat ./coverage/lcov.info | coveralls",
+    "clean": "rimraf esm cjs/*.?s"
   },
   "repository": {
     "type": "git",
@@ -43,6 +51,7 @@
     "coveralls": "^3.1.1",
     "eslint": "^8.1.0",
     "jest": "^27.2.5",
+    "rimraf": "^3.0.2",
     "typescript": "^4.4.4"
   }
 }
