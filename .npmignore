@@ -1,6 +1,6 @@
 /tsconfig.json
 /.travis.yml
-/.eslintrc.js
+/.eslintrc.cjs
 /tests/
 /src/
 /coverage/
