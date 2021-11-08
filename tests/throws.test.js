@@ -1,4 +1,4 @@
-const staticPages = require('../lib/cjs/index').default;
+const staticPages = require('../cjs/index').default;
 
 test('it should throw when the route is not an object', async () => {
   await expect(async () => {

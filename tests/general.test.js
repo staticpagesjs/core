@@ -1,5 +1,5 @@
 const { Readable, Writable } = require('stream');
-const staticPages = require('../lib/cjs/index').default;
+const staticPages = require('../cjs/index').default;
 
 const seq = n => Array.from(new Array(n)).map((v, i) => ({ a: i }));
 
