@@ -75,7 +75,7 @@ type Options = {
     from: Iterable<Data> | AsyncIterable<Data>;
     to: (data: Data) => void | Promise<void>;
     controller?: (data: Data) => undefined | Data | Data[] | Promise<undefined | Data | Data[]>;
-    variables: Record<string, unknown>;
+    variables?: Record<string, unknown>;
 }[];
 
 // Where `Data` is:
