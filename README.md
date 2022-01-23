@@ -75,14 +75,18 @@ type Options = {
     from: Iterable<Data> | AsyncIterable<Data>;
     to: (data: Data) => void | Promise<void>;
     controller?: (data: Data) => undefined | Data | Data[] | Promise<undefined | Data | Data[]>;
+    variables: Record<string, unknown>;
 }[];
 
+// Where `Data` is:
+type Data = Record<string, unknown>;
+// Or the same definition in a more known form:
 type Data = { [k: string]: unknown };
 ```
 
 ## Custom options for the controller
-You can define additional properties at the same level as the `from`, `to` and `controller` keys.
-These user defined properties are accessible through the `this` context variable of the controller.
+You can pass additional configuration options to your controller under the `variables` property.
+These variables are accessible through the `this` context variable of the controller.
 
 ```js
 require("@static-pages/core").default([{
@@ -91,7 +95,9 @@ require("@static-pages/core").default([{
     controller: function(data) {
         this.myProp; // <-- 123
     },
-    myProp: 123,
+    variables: {
+        myProp: 123,
+    },
 }]);
 ```
 

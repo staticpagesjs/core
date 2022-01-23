@@ -134,7 +134,7 @@ test('controller can remove items from output', async () => {
     expect(output).toStrictEqual(expected);
 });
 
-test('it passes route configurations to the controller as `this`', async () => {
+test('it passes variables to the controller as `this`', async () => {
     const MY_TEXT = "this is my custom config.";
     const input = seq(5);
     const expected = seq(5).map(x => ({ ...x, m: MY_TEXT }));
@@ -145,10 +145,12 @@ test('it passes route configurations to the controller as `this`', async () => {
     await staticPages([{
         from: input,
         to: writer,
-        myConfigOption: MY_TEXT,
         controller: function (data) {
             return { ...data, m: this.myConfigOption };
-        }
+        },
+        variables: {
+            myConfigOption: MY_TEXT,
+        },
     }]);
 
     expect(output).toStrictEqual(expected);
