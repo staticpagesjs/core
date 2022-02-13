@@ -15,7 +15,7 @@ Yes! Because I browsed the whole jamstack scene, but could not find one which
 3. can render with any template engine (Twig, ejs, Pug, Mustache etc.)
 4. supports incremental builds
 5. has a flexible CLI tool (see [@static-pages/cli](https://www.npmjs.com/package/@static-pages/cli) on npm)
-6. has a Docker image (see [lionel87/static-pages-js](https://hub.docker.com/repository/docker/lionel87/static-pages-js) on dockerhub)
+6. has a Docker image (see [staticpages/cli](https://hub.docker.com/repository/docker/staticpages/cli) on dockerhub)
 7. written in JS (preferably TypeScript)
 8. easy to extend with JS code
 9. learning and using is easy (Gatsby, Hugo, Jekyll, Eleventy etc. are so cool but harder to learn and configure)
