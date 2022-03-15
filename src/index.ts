@@ -15,7 +15,7 @@ const isIterable = <T>(x: any): x is Iterable<T> => typeof x?.[Symbol.iterator] 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const isAsyncIterable = <T>(x: any): x is AsyncIterable<T> => typeof x?.[Symbol.asyncIterator] === 'function';
 
-export default async (routes: Route | Route[]): Promise<void> => {
+export const staticPages = async (routes: Route | Route[]): Promise<void> => {
 	for (const route of Array.isArray(routes) ? routes : [routes]) {
 		if (typeof route !== 'object' || !route)
 			throw new Error(`Route type mismatch, expected 'object', got '${getType(route)}'.`);
@@ -47,3 +47,5 @@ export default async (routes: Route | Route[]): Promise<void> => {
 		}
 	}
 };
+
+export default staticPages;
