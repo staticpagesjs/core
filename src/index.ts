@@ -4,7 +4,6 @@ export type Route = {
 	from: Iterable<Data> | AsyncIterable<Data>;
 	to: (data: Data) => void | Promise<void>;
 	controller?: Controller;
-	variables?: Record<string, unknown>;
 };
 
 const getType = (x: unknown): string => typeof x === 'object' ? (x ? 'object' : 'null') : typeof x;
@@ -20,7 +19,7 @@ export const staticPages = async (routes: Route | Route[]): Promise<void> => {
 		if (typeof route !== 'object' || !route)
 			throw new Error(`Route type mismatch, expected 'object', got '${getType(route)}'.`);
 
-		const { from, to, controller, variables } = route;
+		const { from, to, controller } = route;
 
 		if (!isIterable(from) && !isAsyncIterable(from))
 			throw new Error('Route \'from\' is not an \'iterable\' or an \'asyncIterable\'.');
@@ -34,7 +33,7 @@ export const staticPages = async (routes: Route | Route[]): Promise<void> => {
 		const isController = typeof controller === 'function';
 
 		for await (const data of from) {
-			const results = isController ? await (controller as Controller).call(variables, data) : data;
+			const results = isController ? await controller(data) : data;
 			if (typeof results === 'object' && results) {
 				if (Array.isArray(results)) {
 					for (const result of results) {
