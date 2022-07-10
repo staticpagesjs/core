@@ -66,25 +66,20 @@ staticPages([{
 }]).catch(console.error);
 ```
 
-## Options of `staticPages()`
+## `staticPages(options: Options)`
 The `staticPages()` function expects one parameter which must be an array.
 Each item should contain `from`, `to` and optionally a `controller` property matching the definition below.
 
 ```ts
+type Data = Record<string, unknown>;
 type Options = {
     from: Iterable<Data> | AsyncIterable<Data>;
     to: (data: Data) => void | Promise<void>;
     controller?: (data: Data) => undefined | Data | Data[] | Promise<undefined | Data | Data[]>;
-    variables?: Record<string, unknown>;
 }[];
-
-// Where `Data` is:
-type Data = Record<string, unknown>;
-// Or the same definition in a more known form:
-type Data = { [k: string]: unknown };
 ```
 
-> When `Options` is not passed as an array, it is wrapped into an array.
+> Additionally, when `Options` is not passed as an array, it is wrapped into an array.
 
 ## Missing a feature?
 Create an issue describing your needs. If it fits the scope of the project I will implement it or you can implement it your own and submit a pull request.
