@@ -32,10 +32,10 @@ This project targets small and medium sized projects. The rendering process trie
 __Readers__ provides an iterable list of page data. __Controllers__ can manipulate and extend each data object. __Writers__ render the final output for you.
 
 ```js
-const staticPages = require("@static-pages/core").default;
-const markdownReader = require("@static-pages/markdown-reader").default;
-const yamlReader = require("@static-pages/yaml-reader").default;
-const twigWriter = require("@static-pages/twig-writer").default;
+import staticPages from '@static-pages/core';
+import markdownReader from '@static-pages/markdown-reader';
+import yamlReader from '@static-pages/yaml-reader';
+import twigWriter from '@static-pages/twig-writer';
 
 staticPages([{
     from: markdownReader({
@@ -84,22 +84,7 @@ type Data = Record<string, unknown>;
 type Data = { [k: string]: unknown };
 ```
 
-## Custom options for the controller
-You can pass additional configuration options to your controller under the `variables` property.
-These variables are accessible through the `this` context variable of the controller.
-
-```js
-require("@static-pages/core").default([{
-    from: ...,
-    to: ...,
-    controller: function(data) {
-        this.myProp; // <-- 123
-    },
-    variables: {
-        myProp: 123,
-    },
-}]);
-```
+> When `Options` is not passed as an array, it is wrapped into an array.
 
 ## Missing a feature?
 Create an issue describing your needs. If it fits the scope of the project I will implement it or you can implement it your own and submit a pull request.
