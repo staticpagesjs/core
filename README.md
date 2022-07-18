@@ -46,11 +46,11 @@ staticPages([{
         viewsDir: "path/to/views/folder",
         outDir: "path/to/output/folder",
     }),
-    controller: function(data) {
+    controller(data) {
         data.timestamp = new Date().toJSON(); // adds a "timestamp" variable
         return data; // returning the data is required if you want to send it to the renderer
     }
-},{
+}, {
     from: yamlReader({ // assume we have the home page data in yaml format.
         pattern: "home/*.yaml" // <-- reads home/en.yaml, home/de.yaml, home/fr.yaml etc.
     }),
@@ -59,27 +59,33 @@ staticPages([{
         viewsDir: "path/to/views/folder",
         outDir: "path/to/output/folder",
     }),
-    controller: function(data) {
+    controller(data) {
         data.commitHash = yourGetCommitHashFn();
         return data;
     }
-}]).catch(console.error);
+}])
+.catch(error => {
+    console.error('Error:', error);
+    console.error(error.stack);
+});
 ```
 
-## `staticPages(options: Options)`
-The `staticPages()` function expects one parameter which must be an array.
-Each item should contain `from`, `to` and optionally a `controller` property matching the definition below.
+## `staticPages(routes: Route | Route[])`
+The function expects the `routes` parameter to be an array. It is wrapped into an array automatically when other type is provided.
+Each item in this array should be an object containing a `from`, `to` and optionally a `controller` property matching the definition below.
 
 ```ts
 type Data = Record<string, unknown>;
-type Options = {
+type Route = {
     from: Iterable<Data> | AsyncIterable<Data>;
     to: (data: Data) => void | Promise<void>;
     controller?: (data: Data) => undefined | Data | Data[] | Promise<undefined | Data | Data[]>;
-}[];
+};
 ```
 
-> Additionally, when `Options` is not passed as an array, it is wrapped into an array.
+> Tip: Controllers may return an array of `Data` objects. Each data object will be rendered as a separate page.
+
+> Tip: Controllers may return `undefined` to prevent the rendering of the current data object.
 
 ## Missing a feature?
 Create an issue describing your needs. If it fits the scope of the project I will implement it or you can implement it your own and submit a pull request.
