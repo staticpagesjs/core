@@ -1,4 +1,4 @@
-const { staticPages } = require('../cjs/index');
+import { staticPages } from '../esm/index.js';
 
 test('it should throw when the route is not an object', async () => {
 	await expect(async () => {

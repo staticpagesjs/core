@@ -1,5 +1,5 @@
-const { Readable, Writable } = require('stream');
-const { staticPages } = require('../cjs/index');
+import { Readable } from 'stream';
+import { staticPages } from '../esm/index.js';
 
 const seq = n => Array.from(new Array(n)).map((v, i) => ({ a: i }));
 
@@ -13,14 +13,6 @@ const streamReader = function (source) {
 		}
 	});
 };
-
-const streamWriter = new Writable({
-	objectMode: true,
-	write(chunk, encoding, callback) {
-		console.log(chunk);
-		callback();
-	}
-});
 
 test('it passes trough the input data with minimal configuration', async () => {
 	const input = seq(5);
