@@ -1,7 +1,6 @@
-node_modules
-/cjs/*
-!/cjs/package.json
+/node_modules/
 /esm/
+/cjs/
 /coverage/
 *.log
 *.tgz

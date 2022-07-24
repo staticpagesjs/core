@@ -1,4 +1,5 @@
 /tsconfig.json
+/tsconfig.cjs.json
 /.travis.yml
 /.eslintrc.cjs
 /tests/

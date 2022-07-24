@@ -3,9 +3,9 @@
   "version": "3.0.2",
   "description": "General purpose static pages renderer.",
   "type": "module",
-  "main": "./cjs/index.js",
-  "module": "./esm/index.js",
-  "browser": "./esm/index.js",
+  "main": "cjs/index.js",
+  "module": "esm/index.js",
+  "types": "esm/index.d.js",
   "exports": {
     ".": {
       "require": "./cjs/index.js",
@@ -13,15 +13,15 @@
     }
   },
   "scripts": {
-    "prepack": "npm run build",
+    "prepack": "npm run test",
     "build": "npm run build:esm && npm run build:cjs",
     "build:esm": "tsc",
-    "build:cjs": "tsc --outDir cjs --module commonjs",
     "watch:esm": "tsc --watch",
-    "watch:cjs": "tsc --watch --outDir cjs --module commonjs",
+    "build:cjs": "tsc --project tsconfig.cjs.json && echo { \"type\": \"commonjs\" }>cjs/package.json",
+    "watch:cjs": "npm run build:cjs && tsc --project tsconfig.cjs.json --watch",
     "test": "eslint src && npm run build && jest",
     "coverage": "jest --coverage && cat ./coverage/lcov.info | coveralls",
-    "clean": "rimraf esm cjs/*.?s"
+    "clean": "rimraf esm cjs"
   },
   "repository": {
     "type": "git",
