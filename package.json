@@ -5,7 +5,7 @@
   "type": "module",
   "main": "cjs/index.js",
   "module": "esm/index.js",
-  "types": "esm/index.d.js",
+  "types": "esm/index.d.ts",
   "exports": {
     ".": {
       "require": "./cjs/index.js",
