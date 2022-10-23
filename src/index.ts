@@ -1,11 +1,3 @@
-export type Data = Record<string, unknown>;
-export type Controller = (data: Data) => undefined | Data | Data[] | Promise<undefined | Data | Data[]>;
-export type Route = {
-	from: Iterable<Data> | AsyncIterable<Data>;
-	to: (data: Data) => void | Promise<void>;
-	controller?: Controller;
-};
-
 const getType = (x: unknown): string => typeof x === 'object' ? (x ? 'object' : 'null') : typeof x;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -14,7 +6,17 @@ const isIterable = <T>(x: any): x is Iterable<T> => typeof x?.[Symbol.iterator] 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const isAsyncIterable = <T>(x: any): x is AsyncIterable<T> => typeof x?.[Symbol.asyncIterator] === 'function';
 
-export const staticPages = async (routes: Route | Route[]): Promise<void> => {
+export namespace staticPages {
+	export type Data = Record<string, unknown>;
+	export type Controller = (data: staticPages.Data) => undefined | staticPages.Data | staticPages.Data[] | Promise<undefined | staticPages.Data | staticPages.Data[]>;
+	export type Route = {
+		from: Iterable<staticPages.Data> | AsyncIterable<staticPages.Data>;
+		to: (data: staticPages.Data) => void | Promise<void>;
+		controller?: staticPages.Controller;
+	};
+}
+
+export const staticPages = async (routes: staticPages.Route | staticPages.Route[]): Promise<void> => {
 	for (const route of Array.isArray(routes) ? routes : [routes]) {
 		if (typeof route !== 'object' || !route)
 			throw new Error(`Route type mismatch, expected 'object', got '${getType(route)}'.`);
