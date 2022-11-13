@@ -21,10 +21,10 @@ test('it passes trough the input data with minimal configuration', async () => {
 	const output = [];
 	const writer = item => output.push(item);
 
-	await staticPages([{
+	await staticPages({
 		from: input,
 		to: writer,
-	}]);
+	});
 
 	expect(output).toStrictEqual(expected);
 });
@@ -36,10 +36,10 @@ test('works on iterable inputs', async () => {
 	const output = [];
 	const writer = item => output.push(item);
 
-	await staticPages([{
+	await staticPages({
 		from: input,
 		to: writer,
-	}]);
+	});
 
 	expect(output).toStrictEqual(expected);
 });
@@ -51,10 +51,10 @@ test('works on async iterable inputs', async () => {
 	const output = [];
 	const writer = item => output.push(item);
 
-	await staticPages([{
+	await staticPages({
 		from: input,
 		to: writer,
-	}]);
+	});
 
 	expect(output).toStrictEqual(expected);
 });
@@ -66,10 +66,10 @@ test('works on object stream inputs', async () => {
 	const output = [];
 	const writer = item => output.push(item);
 
-	await staticPages([{
+	await staticPages({
 		from: input,
 		to: writer,
-	}]);
+	});
 
 	expect(output).toStrictEqual(expected);
 });
@@ -81,11 +81,11 @@ test('it executes the controller which can alter the output', async () => {
 	const output = [];
 	const writer = item => output.push(item);
 
-	await staticPages([{
+	await staticPages({
 		from: input,
 		to: writer,
 		controller: (d) => ({ a: d.a + 1 }),
-	}]);
+	});
 
 	expect(output).toStrictEqual(expected);
 });
@@ -101,11 +101,11 @@ test('controller can insert additional items to output', async () => {
 	const output = [];
 	const writer = item => output.push(item);
 
-	await staticPages([{
+	await staticPages({
 		from: input,
 		to: writer,
 		controller: (d) => [{ a: d.a + 1 }, { b: d.a }], // output two items for each input item
-	}]);
+	});
 
 	expect(output).toStrictEqual(expected);
 });
@@ -117,11 +117,11 @@ test('controller can remove items from output', async () => {
 	const output = [];
 	const writer = item => output.push(item);
 
-	await staticPages([{
+	await staticPages({
 		from: input,
 		to: writer,
 		controller: (d) => d.a % 2 === 0 ? d : undefined, // mod2? d / nothing
-	}]);
+	});
 
 	expect(output).toStrictEqual(expected);
 });

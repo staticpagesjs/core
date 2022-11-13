@@ -1,36 +1,47 @@
 const getType = (x: unknown): string => typeof x === 'object' ? (x ? 'object' : 'null') : typeof x;
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const isIterable = <T>(x: any): x is Iterable<T> => typeof x?.[Symbol.iterator] === 'function';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const isAsyncIterable = <T>(x: any): x is AsyncIterable<T> => typeof x?.[Symbol.asyncIterator] === 'function';
 
 export namespace staticPages {
-	export type Data = Record<string, unknown>;
-	export type Controller = (data: staticPages.Data) => undefined | staticPages.Data | staticPages.Data[] | Promise<undefined | staticPages.Data | staticPages.Data[]>;
-	export type Route = {
-		from: Iterable<staticPages.Data> | AsyncIterable<staticPages.Data>;
-		to: (data: staticPages.Data) => void | Promise<void>;
-		controller?: staticPages.Controller;
-	};
+	export type Route<
+		R extends Record<string, unknown> = Record<string, unknown>,
+		W extends Record<string, unknown> = Record<string, unknown>
+		> = {
+			from: Iterable<R> | AsyncIterable<R>;
+			to: { (data: W): void | Promise<void>; teardown?(): void | Promise<void>; };
+			controller?(data: R): void | W | W[] | Promise<void | W | W[]>;
+		};
 }
 
-export const staticPages = async (routes: staticPages.Route | staticPages.Route[]): Promise<void> => {
-	for (const route of Array.isArray(routes) ? routes : [routes]) {
+export async function staticPages<R1 extends Record<string, unknown> = Record<string, unknown>, W1 extends Record<string, unknown> = Record<string, unknown>>(...routes: [staticPages.Route<R1, W1>]): Promise<void>;
+export async function staticPages<R1 extends Record<string, unknown> = Record<string, unknown>, W1 extends Record<string, unknown> = Record<string, unknown>, R2 extends Record<string, unknown> = Record<string, unknown>, W2 extends Record<string, unknown> = Record<string, unknown>>(...routes: [staticPages.Route<R1, W1>, staticPages.Route<R2, W2>]): Promise<void>;
+export async function staticPages<R1 extends Record<string, unknown> = Record<string, unknown>, W1 extends Record<string, unknown> = Record<string, unknown>, R2 extends Record<string, unknown> = Record<string, unknown>, W2 extends Record<string, unknown> = Record<string, unknown>, R3 extends Record<string, unknown> = Record<string, unknown>, W3 extends Record<string, unknown> = Record<string, unknown>>(...routes: [staticPages.Route<R1, W1>, staticPages.Route<R2, W2>, staticPages.Route<R3, W3>]): Promise<void>;
+export async function staticPages<R1 extends Record<string, unknown> = Record<string, unknown>, W1 extends Record<string, unknown> = Record<string, unknown>, R2 extends Record<string, unknown> = Record<string, unknown>, W2 extends Record<string, unknown> = Record<string, unknown>, R3 extends Record<string, unknown> = Record<string, unknown>, W3 extends Record<string, unknown> = Record<string, unknown>, R4 extends Record<string, unknown> = Record<string, unknown>, W4 extends Record<string, unknown> = Record<string, unknown>>(...routes: [staticPages.Route<R1, W1>, staticPages.Route<R2, W2>, staticPages.Route<R3, W3>, staticPages.Route<R4, W4>]): Promise<void>;
+export async function staticPages<R1 extends Record<string, unknown> = Record<string, unknown>, W1 extends Record<string, unknown> = Record<string, unknown>, R2 extends Record<string, unknown> = Record<string, unknown>, W2 extends Record<string, unknown> = Record<string, unknown>, R3 extends Record<string, unknown> = Record<string, unknown>, W3 extends Record<string, unknown> = Record<string, unknown>, R4 extends Record<string, unknown> = Record<string, unknown>, W4 extends Record<string, unknown> = Record<string, unknown>, R5 extends Record<string, unknown> = Record<string, unknown>, W5 extends Record<string, unknown> = Record<string, unknown>>(...routes: [staticPages.Route<R1, W1>, staticPages.Route<R2, W2>, staticPages.Route<R3, W3>, staticPages.Route<R4, W4>, staticPages.Route<R5, W5>]): Promise<void>;
+export async function staticPages<R1 extends Record<string, unknown> = Record<string, unknown>, W1 extends Record<string, unknown> = Record<string, unknown>, R2 extends Record<string, unknown> = Record<string, unknown>, W2 extends Record<string, unknown> = Record<string, unknown>, R3 extends Record<string, unknown> = Record<string, unknown>, W3 extends Record<string, unknown> = Record<string, unknown>, R4 extends Record<string, unknown> = Record<string, unknown>, W4 extends Record<string, unknown> = Record<string, unknown>, R5 extends Record<string, unknown> = Record<string, unknown>, W5 extends Record<string, unknown> = Record<string, unknown>, R6 extends Record<string, unknown> = Record<string, unknown>, W6 extends Record<string, unknown> = Record<string, unknown>>(...routes: [staticPages.Route<R1, W1>, staticPages.Route<R2, W2>, staticPages.Route<R3, W3>, staticPages.Route<R4, W4>, staticPages.Route<R5, W5>, staticPages.Route<R6, W6>]): Promise<void>;
+export async function staticPages(...routes: staticPages.Route[]): Promise<void>;
+
+export async function staticPages(...routes: staticPages.Route[]): Promise<void> {
+	const teardown = new Set<{ (): void | Promise<void>; }>();
+
+	for (const route of routes) {
 		if (typeof route !== 'object' || !route)
-			throw new Error(`Route type mismatch, expected 'object', got '${getType(route)}'.`);
+			throw new Error(`Argument type mismatch, expected 'object', got '${getType(route)}'.`);
 
 		const { from, to, controller } = route;
 
 		if (!isIterable(from) && !isAsyncIterable(from))
-			throw new Error('Route \'from\' is not an \'iterable\' or an \'asyncIterable\'.');
+			throw new Error('Argument type mismatch, \'from\' exptects \'iterable\' or \'asyncIterable\'.');
 
 		if (typeof to !== 'function')
-			throw new Error(`Route 'to' type mismatch, expected 'function', got '${getType(to)}'.`);
+			throw new Error(`Argument type mismatch, 'to' expects 'function', got '${getType(to)}'.`);
 
 		if (typeof controller !== 'undefined' && typeof controller !== 'function')
-			throw new Error(`Route 'controller' type mismatch, expected 'function', got '${getType(controller)}'.`);
+			throw new Error(`Argument type mismatch, 'controller' expects 'function', got '${getType(controller)}'.`);
+
+		if (typeof to.teardown === 'function') {
+			teardown.add(to.teardown);
+		}
 
 		const isController = typeof controller === 'function';
 
@@ -47,6 +58,10 @@ export const staticPages = async (routes: staticPages.Route | staticPages.Route[
 			}
 		}
 	}
-};
+
+	for (const fn of teardown) {
+		await fn();
+	}
+}
 
 export default staticPages;

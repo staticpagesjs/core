@@ -37,7 +37,7 @@ import markdownReader from '@static-pages/markdown-reader';
 import yamlReader from '@static-pages/yaml-reader';
 import twigWriter from '@static-pages/twig-writer';
 
-staticPages([{
+staticPages({
     from: markdownReader({
         pattern: "pages/**/*.md"
     }),
@@ -63,29 +63,32 @@ staticPages([{
         data.commitHash = yourGetCommitHashFn();
         return data;
     }
-}])
+})
 .catch(error => {
     console.error('Error:', error);
     console.error(error.stack);
 });
 ```
 
-## `staticPages(routes: Route | Route[])`
-The function expects the `routes` parameter to be an array. It is wrapped into an array automatically when other type is provided.
-Each item in this array should be an object containing a `from`, `to` and optionally a `controller` property matching the definition below.
+## `staticPages(...routes: Route[])`
+
+Each route consists of a `from`, `to` and optionally a `controller` property matching the definition below.
 
 ```ts
 type Data = Record<string, unknown>;
 type Route = {
     from: Iterable<Data> | AsyncIterable<Data>;
-    to: (data: Data) => void | Promise<void>;
-    controller?: (data: Data) => undefined | Data | Data[] | Promise<undefined | Data | Data[]>;
+    to: { (data: Data): void | Promise<void>; teardown?(): void | Promise<void>; };
+    controller?(data: Data): void | Data | Data[] | Promise<void | Data | Data[]>;
 };
 ```
 
-> Tip: Controllers may return an array of `Data` objects. Each data object will be rendered as a separate page.
+> Tip: Controllers may return an array of `Data` objects; each will be rendered as a separate page.
+> Alternatively it may return `void` to prevent the rendering of the current data object.
 
-> Tip: Controllers may return `undefined` to prevent the rendering of the current data object.
+> Tip: To schedule cleanup after writers you can define a `.teardown()` member on the writer call.
+> This callback will be run after the last page is processed. If more writers provide the same callback
+> its only executed once.
 
 ## Missing a feature?
 Create an issue describing your needs. If it fits the scope of the project I will implement it or you can implement it your own and submit a pull request.
