@@ -1,6 +1,6 @@
 # Static Pages / Core
 
-[![Build Status](https://app.travis-ci.com/staticpagesjs/core.svg?branch=master)](https://app.travis-ci.com/staticpagesjs/core)
+[![Build Status](https://github.com/staticpagesjs/core/actions/workflows/coveralls.yaml/badge.svg)](https://github.com/staticpagesjs/core/actions/workflows/coveralls.yaml)
 [![Coverage Status](https://coveralls.io/repos/github/staticpagesjs/core/badge.svg?branch=master)](https://coveralls.io/github/staticpagesjs/core?branch=master)
 ![npms.io (quality)](https://img.shields.io/npms-io/quality-score/@static-pages/core?label=quality)
 ![Maintenance](https://img.shields.io/maintenance/yes/2023)
