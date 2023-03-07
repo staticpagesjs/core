@@ -3,7 +3,7 @@
 [![Build Status](https://app.travis-ci.com/staticpagesjs/core.svg?branch=master)](https://app.travis-ci.com/staticpagesjs/core)
 [![Coverage Status](https://coveralls.io/repos/github/staticpagesjs/core/badge.svg?branch=master)](https://coveralls.io/github/staticpagesjs/core?branch=master)
 ![npms.io (quality)](https://img.shields.io/npms-io/quality-score/@static-pages/core?label=quality)
-![Maintenance](https://img.shields.io/maintenance/yes/2022)
+![Maintenance](https://img.shields.io/maintenance/yes/2023)
 
 This package contains only the core; this means it does not provide CLI support or readers and writers.
 You can import this library to your JS project then add your own controllers, readers and writers.
