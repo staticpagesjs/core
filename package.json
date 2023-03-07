@@ -1,6 +1,6 @@
 {
   "name": "@static-pages/core",
-  "version": "5.0.1",
+  "version": "5.0.2",
   "description": "General purpose static pages renderer.",
   "type": "module",
   "main": "cjs/index.js",
