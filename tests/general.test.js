@@ -1,3 +1,4 @@
+import tap from 'tap';
 import { Readable } from 'stream';
 import { staticPages } from '../esm/index.js';
 
@@ -14,7 +15,7 @@ const streamReader = function (source) {
 	});
 };
 
-test('it passes trough the input data with minimal configuration', async () => {
+tap.test('it passes trough the input data with minimal configuration', async () => {
 	const input = seq(5);
 	const expected = seq(5);
 
@@ -26,10 +27,10 @@ test('it passes trough the input data with minimal configuration', async () => {
 		to: writer,
 	});
 
-	expect(output).toStrictEqual(expected);
+	tap.match(output, expected);
 });
 
-test('works on iterable inputs', async () => {
+tap.test('works on iterable inputs', async () => {
 	const input = iterableReader(seq(5));
 	const expected = seq(5);
 
@@ -41,10 +42,10 @@ test('works on iterable inputs', async () => {
 		to: writer,
 	});
 
-	expect(output).toStrictEqual(expected);
+	tap.match(output, expected);
 });
 
-test('works on async iterable inputs', async () => {
+tap.test('works on async iterable inputs', async () => {
 	const input = asyncIterableReader(seq(5));
 	const expected = seq(5);
 
@@ -56,10 +57,10 @@ test('works on async iterable inputs', async () => {
 		to: writer,
 	});
 
-	expect(output).toStrictEqual(expected);
+	tap.match(output, expected);
 });
 
-test('works on object stream inputs', async () => {
+tap.test('works on object stream inputs', async () => {
 	const input = streamReader(seq(5));
 	const expected = seq(5);
 
@@ -71,10 +72,10 @@ test('works on object stream inputs', async () => {
 		to: writer,
 	});
 
-	expect(output).toStrictEqual(expected);
+	tap.match(output, expected);
 });
 
-test('it executes the controller which can alter the output', async () => {
+tap.test('it executes the controller which can alter the output', async () => {
 	const input = seq(5);
 	const expected = seq(5).map(x => ({ a: x.a + 1 }));
 
@@ -87,10 +88,10 @@ test('it executes the controller which can alter the output', async () => {
 		controller: (d) => ({ a: d.a + 1 }),
 	});
 
-	expect(output).toStrictEqual(expected);
+	tap.match(output, expected);
 });
 
-test('controller can insert additional items to output', async () => {
+tap.test('controller can insert additional items to output', async () => {
 	const input = seq(5);
 	const expected = [];
 	for (let i = 0; i < input.length; i++) {
@@ -107,10 +108,10 @@ test('controller can insert additional items to output', async () => {
 		controller: (d) => [{ a: d.a + 1 }, { b: d.a }], // output two items for each input item
 	});
 
-	expect(output).toStrictEqual(expected);
+	tap.match(output, expected);
 });
 
-test('controller can remove items from output', async () => {
+tap.test('controller can remove items from output', async () => {
 	const input = seq(5);
 	const expected = seq(5).filter(x => x.a % 2 === 0);
 
@@ -123,5 +124,23 @@ test('controller can remove items from output', async () => {
 		controller: (d) => d.a % 2 === 0 ? d : undefined, // mod2? d / nothing
 	});
 
-	expect(output).toStrictEqual(expected);
+	tap.match(output, expected);
+});
+
+tap.test('writer.teardown() is called on end', async () => {
+	const input = seq(5);
+
+	const expected = true;
+	let output = false;
+	function writer() {
+		return;
+	}
+	writer.teardown = () => output = true;
+
+	await staticPages({
+		from: input,
+		to: writer,
+	});
+
+	tap.equal(output, expected);
 });
