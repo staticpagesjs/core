@@ -8,7 +8,7 @@ export namespace staticPages {
 		W extends Record<string, unknown> = Record<string, unknown>
 		> = {
 			from: Iterable<R> | AsyncIterable<R>;
-			to: { (data: W): void | Promise<void>; teardown?(): void | Promise<void>; };
+			to(data: IteratorResult<W>): void | Promise<void>;
 			controller?(data: R): void | W | W[] | Promise<void | W | W[]>;
 		};
 }
@@ -22,8 +22,6 @@ export async function staticPages<R1 extends Record<string, unknown> = Record<st
 export async function staticPages(...routes: staticPages.Route[]): Promise<void>;
 
 export async function staticPages(...routes: staticPages.Route[]): Promise<void> {
-	const teardown = new Set<{ (): void | Promise<void>; }>();
-
 	for (const route of routes) {
 		if (typeof route !== 'object' || !route)
 			throw new Error(`Argument type mismatch, expected 'object', got '${getType(route)}'.`);
@@ -39,10 +37,6 @@ export async function staticPages(...routes: staticPages.Route[]): Promise<void>
 		if (typeof controller !== 'undefined' && typeof controller !== 'function')
 			throw new Error(`Argument type mismatch, 'controller' expects 'function', got '${getType(controller)}'.`);
 
-		if (typeof to.teardown === 'function') {
-			teardown.add(to.teardown);
-		}
-
 		const isController = typeof controller === 'function';
 
 		for await (const data of from) {
@@ -50,17 +44,15 @@ export async function staticPages(...routes: staticPages.Route[]): Promise<void>
 			if (typeof results === 'object' && results) {
 				if (Array.isArray(results)) {
 					for (const result of results) {
-						await to(result);
+						await to({ value: result });
 					}
 				} else {
-					await to(results);
+					await to({ value: results });
 				}
 			}
 		}
-	}
 
-	for (const fn of teardown) {
-		await fn();
+		await to({ done: true, value: undefined });
 	}
 }
 

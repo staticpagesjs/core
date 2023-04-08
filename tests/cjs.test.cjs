@@ -8,7 +8,7 @@ tap.test('it passes trough the input data with minimal configuration', async () 
 	const expected = seq(5);
 
 	const output = [];
-	const writer = item => output.push(item);
+	const writer = item => { if (!item.done) output.push(item.value); };
 
 	await staticPages({
 		from: input,

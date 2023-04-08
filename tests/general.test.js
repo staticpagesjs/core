@@ -20,7 +20,7 @@ tap.test('it passes trough the input data with minimal configuration', async () 
 	const expected = seq(5);
 
 	const output = [];
-	const writer = item => output.push(item);
+	const writer = item => { if (!item.done) output.push(item.value); };
 
 	await staticPages({
 		from: input,
@@ -35,7 +35,7 @@ tap.test('works on iterable inputs', async () => {
 	const expected = seq(5);
 
 	const output = [];
-	const writer = item => output.push(item);
+	const writer = item => { if (!item.done) output.push(item.value); };
 
 	await staticPages({
 		from: input,
@@ -50,7 +50,7 @@ tap.test('works on async iterable inputs', async () => {
 	const expected = seq(5);
 
 	const output = [];
-	const writer = item => output.push(item);
+	const writer = item => { if (!item.done) output.push(item.value); };
 
 	await staticPages({
 		from: input,
@@ -65,7 +65,7 @@ tap.test('works on object stream inputs', async () => {
 	const expected = seq(5);
 
 	const output = [];
-	const writer = item => output.push(item);
+	const writer = item => { if (!item.done) output.push(item.value); };
 
 	await staticPages({
 		from: input,
@@ -80,7 +80,7 @@ tap.test('it executes the controller which can alter the output', async () => {
 	const expected = seq(5).map(x => ({ a: x.a + 1 }));
 
 	const output = [];
-	const writer = item => output.push(item);
+	const writer = item => { if (!item.done) output.push(item.value); };
 
 	await staticPages({
 		from: input,
@@ -100,7 +100,7 @@ tap.test('controller can insert additional items to output', async () => {
 	}
 
 	const output = [];
-	const writer = item => output.push(item);
+	const writer = item => { if (!item.done) output.push(item.value); };
 
 	await staticPages({
 		from: input,
@@ -116,7 +116,7 @@ tap.test('controller can remove items from output', async () => {
 	const expected = seq(5).filter(x => x.a % 2 === 0);
 
 	const output = [];
-	const writer = item => output.push(item);
+	const writer = item => { if (!item.done) output.push(item.value); };
 
 	await staticPages({
 		from: input,
@@ -132,10 +132,7 @@ tap.test('writer.teardown() is called on end', async () => {
 
 	const expected = true;
 	let output = false;
-	function writer() {
-		return;
-	}
-	writer.teardown = () => output = true;
+	const writer = item => { if (item.done) output = true; };
 
 	await staticPages({
 		from: input,

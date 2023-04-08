@@ -29,7 +29,9 @@ This project targets small and medium sized projects. The rendering process trie
 [Visit the project page.](https://staticpagesjs.github.io/)
 
 ## Usage
-__Readers__ provides an iterable list of page data. __Controllers__ can manipulate and extend each data object. __Writers__ render the final output for you.
+- __Readers__ provides an iterable list of page data.
+- __Controllers__ can manipulate and extend each data object.
+- __Writers__ render the final output for you.
 
 ```js
 import staticPages from '@static-pages/core';
@@ -78,17 +80,16 @@ Each route consists of a `from`, `to` and optionally a `controller` property mat
 type Data = Record<string, unknown>;
 type Route = {
     from: Iterable<Data> | AsyncIterable<Data>;
-    to: { (data: Data): void | Promise<void>; teardown?(): void | Promise<void>; };
+    to(data: IteratorResult<Data>): void | Promise<void>;
     controller?(data: Data): void | Data | Data[] | Promise<void | Data | Data[]>;
 };
 ```
 
-> Tip: Controllers may return an array of `Data` objects; each will be rendered as a separate page.
-> Alternatively it may return `void` to prevent the rendering of the current data object.
+### Implementation Notes
 
-> Tip: To schedule cleanup after writers you can define a `.teardown()` member on the writer call.
-> This callback will be run after the last page is processed. If more writers provide the same callback
-> its only executed once.
+- The `controller` may return an array of `Data` objects; each will be rendered as a separate page.  Alternatively it may return `void` to prevent the rendering of the current data object.
+
+- The writer function provided in the `to` property is expected to conform to the JavaScript iterator protocol in order to work. Specifically, this means that the function will be invoked with a `{ value: Data }` parameter for each data object, and will receive a `{ done: true }` parameter when it has finished processing the data and there is no more pages to write.
 
 ## Missing a feature?
 Create an issue describing your needs. If it fits the scope of the project I will implement it or you can implement it your own and submit a pull request.
