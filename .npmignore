@@ -4,6 +4,7 @@
 /.eslintrc.cjs
 /tests/
 /src/
-/coverage/
+/.nyc_output/
+/.github/
 *.log
 *.tgz
