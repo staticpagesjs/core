@@ -1,6 +1,5 @@
 module.exports = {
 	'env': {
-		'jest/globals': true,
 		'node': true,
 		'es2019': true
 	},
@@ -33,5 +32,5 @@ module.exports = {
 		'@typescript-eslint/no-namespace': 'off',
 		'@typescript-eslint/no-explicit-any': 'off',
 	},
-	'ignorePatterns': ['cjs', 'esm', 'tests/*.cjs'],
+	'ignorePatterns': ['cjs/', 'esm/', 'tests/'],
 };
