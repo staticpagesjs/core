@@ -1,6 +1,6 @@
 # Static Pages / Core
 
-[![Build Status](https://github.com/staticpagesjs/core/actions/workflows/coveralls.yaml/badge.svg)](https://github.com/staticpagesjs/core/actions/workflows/coveralls.yaml)
+[![Build Status](https://github.com/staticpagesjs/core/actions/workflows/build.yaml/badge.svg)](https://github.com/staticpagesjs/core/actions/workflows/build.yaml)
 [![Coverage Status](https://coveralls.io/repos/github/staticpagesjs/core/badge.svg?branch=master)](https://coveralls.io/github/staticpagesjs/core?branch=master)
 ![npms.io (quality)](https://img.shields.io/npms-io/quality-score/@static-pages/core?label=quality)
 ![Maintenance](https://img.shields.io/maintenance/yes/2023)
@@ -72,24 +72,22 @@ staticPages({
 });
 ```
 
-## `staticPages(...routes: Route[])`
+## `staticPages(...routes: Route[]): Promise<void>`
 
 Each route consists of a `from`, `to` and optionally a `controller` property matching the definition below.
 
 ```ts
-type Data = Record<string, unknown>;
+type Data = Record<string | symbol | number, unknown>;
 type Route = {
     from: Iterable<Data> | AsyncIterable<Data>;
-    to(data: IteratorResult<Data>): void | Promise<void>;
-    controller?(data: Data): void | Data | Data[] | Promise<void | Data | Data[]>;
+    to(data: AsyncIterable<Data>): void | Promise<void>;
+    controller?(data: Data): undefined | Data | Iterable<Data> | AsyncIterable<Data> | Promise<undefined | Data | Iterable<Data> | AsyncIterable<Data>>;
 };
 ```
 
-### Implementation Notes
+### Notes
 
-- The `controller` may return an array of `Data` objects; each will be rendered as a separate page.  Alternatively it may return `void` to prevent the rendering of the current data object.
-
-- The writer function provided in the `to` property is expected to conform to the JavaScript iterator protocol in order to work. Specifically, this means that the function will be invoked with a `{ value: Data }` parameter for each data object, and will receive a `{ done: true }` parameter when it has finished processing the data and there is no more pages to write.
+The `controller` may return multiple `Data` objects; each will be rendered as a separate page. Alternatively it may return `undefined` to prevent the rendering of the current page.
 
 ## Missing a feature?
 Create an issue describing your needs. If it fits the scope of the project I will implement it or you can implement it your own and submit a pull request.

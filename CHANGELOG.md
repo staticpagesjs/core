@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 7.0.0
+- Writers now recieve an AsyncIterable as the previous method made too much confusion.
+- Minor type defintion improvements.
+- Test suite switched from tap to mocha for now.
+- Coverage reports switched from nyc to c8.
+
+
 ## 6.0.0
 - Adopt JS iterator protocol for the writer callbacks.
 - Removed the `.teardown()` call on the writer when iteration finished. The iterator protocol gives better tools to express these logic.
