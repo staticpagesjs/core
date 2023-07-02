@@ -1,19 +1,27 @@
-const tap = require('tap');
-const { staticPages } = require('../cjs/index.js');
+const assert = require('assert');
+const staticPages = require('../cjs/index.js').default;
 
-const seq = n => Array.from(new Array(n)).map((v, i) => ({ a: i }));
+const seq = n => Array.from({ length: n }, (v, i) => ({ a: i }));
 
-tap.test('it passes trough the input data with minimal configuration', async () => {
-	const input = seq(5);
-	const expected = seq(5);
+function createWriter() {
+	async function writer(items) {
+		for await (const item of items) output.push(item);
+	};
+	const output = writer.output = [];
+	return writer;
+}
 
-	const output = [];
-	const writer = item => { if (!item.done) output.push(item.value); };
+describe('Static Pages CJS Tests', () => {
+	it('CommonJS version is importable and working', async () => {
+		const input = seq(5);
+		const expected = seq(5);
+		const writer = createWriter();
 
-	await staticPages({
-		from: input,
-		to: writer,
+		await staticPages({
+			from: input,
+			to: writer,
+		});
+
+		assert.deepStrictEqual(writer.output, expected);
 	});
-
-	tap.match(output, expected);
 });

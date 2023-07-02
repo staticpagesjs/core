@@ -12,15 +12,22 @@
       "default": "./esm/index.js"
     }
   },
+  "engines": {
+    "node": ">=10.0.0",
+    "deno": ">=1.0.0"
+  },
   "scripts": {
-    "prepack": "npm run test",
-    "clean": "rimraf esm cjs .nyc_output",
+    "prepack": "npm run build && npm run test",
+    "postversion": "git push && git push --tags",
+    "clean": "rimraf esm cjs coverage",
     "build": "npm run build:esm && npm run build:cjs",
     "build:esm": "tsc",
     "watch:esm": "tsc --watch",
     "watch:cjs": "npm run build:cjs && tsc --project tsconfig.cjs.json --watch",
     "build:cjs": "tsc --project tsconfig.cjs.json && echo { \"type\": \"commonjs\" }>cjs/package.json",
-    "test": "tap --nyc-arg=\"--exclude=cjs/index.js\" --node-arg=\"--no-warnings\" --node-arg=\"--experimental-loader\" --node-arg=\"@istanbuljs/esm-loader-hook\""
+    "lint": "eslint",
+    "test": "mocha tests/*.js tests/*.cjs --timeout 10000",
+    "coverage": "c8 -r text -r text-summary -r lcov npm test"
   },
   "repository": {
     "type": "git",
@@ -44,14 +51,13 @@
   },
   "homepage": "https://staticpagesjs.github.io/",
   "devDependencies": {
-    "@istanbuljs/esm-loader-hook": "^0.2.0",
-    "@types/node": "^14.18.9",
+    "@types/node": "^16.18.38",
     "@typescript-eslint/eslint-plugin": "^5.3.0",
     "@typescript-eslint/parser": "^5.3.0",
-    "coveralls": "^3.1.1",
+    "c8": "^8.0.0",
     "eslint": "^8.1.0",
-    "rimraf": "^3.0.2",
-    "tap": "^16.3.4",
-    "typescript": "^4.4.4"
+    "mocha": "^10.2.0",
+    "rimraf": "^5.0.1",
+    "typescript": "^5.1.6"
   }
 }

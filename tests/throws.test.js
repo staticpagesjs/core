@@ -1,27 +1,34 @@
-import tap from 'tap';
-import { staticPages } from '../esm/index.js';
+import assert from 'assert';
+import staticPages from '../esm/index.js';
 
-tap.test('it should throw when the route is not an object', async (tap) => {
-	await tap.rejects(staticPages(null), { message: 'Argument type mismatch' });
-	tap.end();
-});
+describe('Static Pages Throws Tests', () => {
+	it('should throw when the route is not an object', async () => {
+		await assert.rejects(async () => {
+			await staticPages(null);
+		}, { message: `Argument type mismatch: expected 'object', got 'null'.` });
+	});
 
-tap.test('it shoult throw when "from" is not iterable', async (tap) => {
-	await tap.rejects(staticPages({ from: 1, to: () => undefined }), { message: 'Argument type mismatch' });
-	tap.end();
-});
+	it('should throw when "from" is not iterable', async () => {
+		await assert.rejects(async () => {
+			await staticPages({ from: 1, to: () => undefined });
+		}, { message: `Argument type mismatch: 'from' exptects 'iterable' or 'asyncIterable'.` });
+	});
 
-tap.test('it shoult throw when "to" is not a function', async (tap) => {
-	await tap.rejects(staticPages({ from: [], to: { a: 1 } }), { message: 'Argument type mismatch' });
-	tap.end();
-});
+	it('should throw when "to" is not a function', async () => {
+		await assert.rejects(async () => {
+			await staticPages({ from: [], to: { a: 1 } });
+		}, { message: `Argument type mismatch: 'to' expects 'function', got 'object'.` });
+	});
 
-tap.test('it shoult throw when "controller" is not a function', async (tap) => {
-	await tap.rejects(staticPages({ from: [], to: () => undefined, controller: 1 }), { message: 'Argument type mismatch' });
-	tap.end();
-});
+	it('should throw when "controller" is not a function', async () => {
+		await assert.rejects(async () => {
+			await staticPages({ from: [], to: () => undefined, controller: 1 });
+		}, { message: `Argument type mismatch: 'controller' expects 'function', got 'number'.` });
+	});
 
-tap.test('it shoult throw when from and to is undefined', async (tap) => {
-	await tap.rejects(staticPages({ from: undefined, to: undefined }), { message: 'Argument type mismatch' });
-	tap.end();
+	it('should throw when from and to are undefined', async () => {
+		await assert.rejects(async () => {
+			await staticPages({ from: undefined, to: undefined });
+		}, { message: `Argument type mismatch: 'from' exptects 'iterable' or 'asyncIterable'.` });
+	});
 });
