@@ -26,7 +26,7 @@
     "build:cjs": "tsc --outDir cjs --module commonjs && echo { \"type\": \"commonjs\" }>cjs/package.json",
     "watch:cjs": "npm run build:cjs && tsc --outDir cjs --module commonjs --watch",
     "lint": "eslint",
-    "test": "mocha tests/*.js tests/*.cjs --timeout 10000",
+    "test": "mocha",
     "coverage": "c8 -r text -r text-summary -r lcov npm test"
   },
   "repository": {
