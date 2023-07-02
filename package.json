@@ -23,8 +23,8 @@
     "build": "npm run build:esm && npm run build:cjs",
     "build:esm": "tsc",
     "watch:esm": "tsc --watch",
-    "watch:cjs": "npm run build:cjs && tsc --project tsconfig.cjs.json --watch",
-    "build:cjs": "tsc --project tsconfig.cjs.json && echo { \"type\": \"commonjs\" }>cjs/package.json",
+    "build:cjs": "tsc --outDir cjs --module commonjs && echo { \"type\": \"commonjs\" }>cjs/package.json",
+    "watch:cjs": "npm run build:cjs && tsc --outDir cjs --module commonjs --watch",
     "lint": "eslint",
     "test": "mocha tests/*.js tests/*.cjs --timeout 10000",
     "coverage": "c8 -r text -r text-summary -r lcov npm test"
