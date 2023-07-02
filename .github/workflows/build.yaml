@@ -16,7 +16,7 @@ jobs:
         run: npm install
       - name: Build package
         run: npm run build
-      - name: Run tests and publish coverage data to coveralls.io
-        run: npm test
+      - name: Test and coverage report to coveralls.io
+        run: npm run coverage && npx --yes coveralls < coverage/lcov.info
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
