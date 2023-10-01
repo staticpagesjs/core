@@ -7,8 +7,8 @@ export namespace createReader {
 		list(): MaybePromise<Iterable<string> | AsyncIterable<string>>;
 		read(entry: string): MaybePromise<ReadResult>;
 		parse(body: ReadResult, entry: string): MaybePromise<T>;
-		finally?(): void;
-		onError?(error: unknown): void;
+		finally?(): MaybePromise<void>;
+		onError?(error: unknown): MaybePromise<void>;
 	};
 }
 
@@ -31,10 +31,10 @@ export async function* createReader<T extends Data>(options: createReader.Option
 			try {
 				yield await parse(await read(entry), entry);
 			} catch (error) {
-				onError(error);
+				await onError(error);
 			}
 		}
 	} finally {
-		options.finally?.();
+		await options.finally?.();
 	}
 }
