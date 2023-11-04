@@ -1,9 +1,10 @@
-import type { Data, MaybePromise } from './common.js';
-import { isIterable, isAsyncIterable } from './common.js';
+import { isIterable, isAsyncIterable } from './helpers.js';
+
+type MaybePromise<T> = T | Promise<T>;
 
 export namespace createReader {
 	export type ReadResult = Uint8Array | string;
-	export type Options<T extends Data> = {
+	export type Options<T> = {
 		list(): MaybePromise<Iterable<string> | AsyncIterable<string>>;
 		read(entry: string): MaybePromise<ReadResult>;
 		parse(body: ReadResult, entry: string): MaybePromise<T>;
@@ -12,7 +13,7 @@ export namespace createReader {
 	};
 }
 
-export async function* createReader<T extends Data>(options: createReader.Options<T>) {
+export async function* createReader<T>(options: createReader.Options<T>) {
 	const { list, read, parse, onError = (error) => { throw error; } } = options;
 
 	// Assertions

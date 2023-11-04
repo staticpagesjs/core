@@ -1,17 +1,18 @@
-import type { Data, MaybePromise } from './common.js';
-import { isIterable, isAsyncIterable } from './common.js';
+import { isIterable, isAsyncIterable } from './helpers.js';
+
+type MaybePromise<T> = T | Promise<T>;
 
 export namespace createWriter {
-	export type Options<T extends Data> = {
-		render(data: Readonly<T>): MaybePromise<string | NodeJS.ArrayBufferView | undefined>;
+	export type Options<T> = {
+		render(data: Readonly<T>): MaybePromise<string | ArrayBufferView | undefined>;
 		name(data: Readonly<T>): MaybePromise<string>;
-		write(name: string, data: string | NodeJS.ArrayBufferView | undefined): MaybePromise<void>;
+		write(name: string, data: string | ArrayBufferView | undefined): MaybePromise<void>;
 		finally?(): MaybePromise<void>;
 		onError?(error: unknown): MaybePromise<void>;
 	};
 }
 
-export function createWriter<T extends Data>(options: createWriter.Options<T>) {
+export function createWriter<T>(options: createWriter.Options<T>) {
 	const { render, name, write, onError = (error) => { throw error; } } = options;
 
 	return async function (iterable: Iterable<T> | AsyncIterable<T>) {
