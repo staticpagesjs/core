@@ -1,10 +1,16 @@
+import type { MaybePromise } from './helpers.js';
 import { getType, isIterable, isAsyncIterable } from './helpers.js';
+import { createReader } from './create-reader.js';
+import * as nodefsBackend from './nodefs-backend.js';
 
-type MaybePromise<T> = T | Promise<T>;
+const isCreateWriterOptions = <T>(x: any): x is createReader.Options<T> => {
+	return typeof x === 'object' && !x && 'backend' in x;
+};
+
 
 export namespace staticPages {
 	export type Route<F, T> = {
-		from: Iterable<F> | AsyncIterable<F>;
+		from: Iterable<F> | AsyncIterable<F> | createReader.Options<F>;
 		to(data: AsyncIterable<T>): MaybePromise<void>;
 		controller?(data: F): MaybePromise<undefined | T | Iterable<T> | AsyncIterable<T>>;
 	};
@@ -48,18 +54,25 @@ export async function staticPages(...routes: staticPages.Route<unknown, unknown>
 export async function staticPages(...routes: staticPages.Route<unknown, unknown>[]): Promise<void> {
 	for (const route of routes) {
 		if (typeof route !== 'object' || !route)
-			throw new Error(`Argument type mismatch: expected an 'object' type, got '${getType(route)}'.`);
+			throw new TypeError(`Expected 'object', recieved '${getType(route)}'.`);
 
-		const { from, to, controller } = route;
+		let { from, to, controller } = route;
+
+		if (isCreateWriterOptions(from)) {
+			from = createReader({
+				backend: nodefsBackend,
+				...from,
+			});
+		}
 
 		if (!isIterable(from) && !isAsyncIterable(from))
-			throw new Error('Argument type mismatch: \'from\' expects an \'iterable\' or an \'asyncIterable\' type.');
+			throw new TypeError(`Expected 'iterable' or 'asyncIterable' at 'from' property.`);
 
 		if (typeof to !== 'function')
-			throw new Error(`Argument type mismatch: 'to' expects a 'function' type, got '${getType(to)}'.`);
+			throw new TypeError(`Expected 'function', recieved '${getType(to)}' at 'to' property.`);
 
 		if (typeof controller !== 'undefined' && typeof controller !== 'function')
-			throw new Error(`Argument type mismatch: 'controller' expects a 'function' type, got '${getType(controller)}'.`);
+			throw new TypeError(`Expected 'function', recieved '${getType(controller)}' at 'controller' property.`);
 
 		async function* asyncGenerator() {
 			for await (const item of from) {

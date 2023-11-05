@@ -1,41 +1,57 @@
-import { isIterable, isAsyncIterable } from './helpers.js';
-
-type MaybePromise<T> = T | Promise<T>;
+import type { MaybePromise, Backend, Entry, ParsedEntry } from './helpers.js';
+import { getType, isIterable, isAsyncIterable } from './helpers.js';
+import picomatch from 'picomatch';
 
 export namespace createReader {
-	export type ReadResult = Uint8Array | string;
 	export type Options<T> = {
-		list(): MaybePromise<Iterable<string> | AsyncIterable<string>>;
-		read(entry: string): MaybePromise<ReadResult>;
-		parse(body: ReadResult, entry: string): MaybePromise<T>;
-		finally?(): MaybePromise<void>;
+		backend?: Backend;
+		cwd?: string;
+		pattern?: string | string[];
+		ignore?: string | string[];
+		parse?(entry: Entry): MaybePromise<ParsedEntry<T>>;
 		onError?(error: unknown): MaybePromise<void>;
 	};
 }
 
-export async function* createReader<T>(options: createReader.Options<T>) {
-	const { list, read, parse, onError = (error) => { throw error; } } = options;
+export async function* createReader<T>({
+	backend,
+	cwd = '.',
+	pattern,
+	ignore,
+	parse = (entry) => JSON.parse(entry.content.toString()),
+	onError = (error) => { throw error; },
+}: createReader.Options<T>) {
+	if (typeof backend !== 'object' || !backend || !('tree' in backend && 'read' in backend)) throw new TypeError(`Expected 'Backend' implementation at 'backend' property.`);
+	if (typeof cwd !== 'string') throw new TypeError(`Expected 'string', recieved '${getType(cwd)}' at 'cwd' property.`);
+	if (typeof pattern !== 'undefined' && typeof pattern !== 'string' && Array.isArray(pattern)) throw new TypeError(`Expected 'string' or 'string[]', recieved '${getType(pattern)}' at 'pattern' property.`);
+	if (typeof ignore !== 'undefined' && typeof ignore !== 'string' && Array.isArray(ignore)) throw new TypeError(`Expected 'string' or 'string[]', recieved '${getType(ignore)}' at 'ignore' property.`);
+	if (typeof parse !== 'function') throw new TypeError(`Expected 'function', recieved '${getType(parse)}' at 'parse' property.`);
+	if (typeof onError !== 'function') throw new TypeError(`Expected 'function', recieved '${getType(onError)}' at 'onError' property.`);
 
-	// Assertions
-	if (typeof list !== 'function') throw new Error("Argument type mismatch: 'list' expects a 'function' type.");
-	if (typeof read !== 'function') throw new Error("Argument type mismatch: 'read' expects a 'function' type.");
-	if (typeof parse !== 'function') throw new Error("Argument type mismatch: 'parse' expects a 'function' type.");
-	if (typeof onError !== 'function') throw new Error("Argument type mismatch: 'onError' expects a 'function' type.");
-
-	const entries = await list();
+	let entries = await backend.tree(cwd);
 
 	if (!isIterable(entries) && !isAsyncIterable(entries))
-		throw new Error('Argument type mismatch: return of \'list\' expected to be an \'iterable\' or an \'asyncIterable\' type.');
+		throw new TypeError('Argument type mismatch: return of \'backend.tree()\' expected to be an \'iterable\' or an \'asyncIterable\' type.');
 
-	try {
+	if (typeof pattern !== 'undefined' || typeof ignore !== 'undefined') {
+		const filteredEntries = [];
+		const isMatch = picomatch(pattern ?? '**/*', { cwd, ignore });
 		for await (const entry of entries) {
-			try {
-				yield await parse(await read(entry), entry);
-			} catch (error) {
-				await onError(error);
+			if (isMatch(entry)) {
+				filteredEntries.push(entry);
 			}
 		}
-	} finally {
-		await options.finally?.();
+		entries = filteredEntries;
+	}
+
+	for await (const entry of entries) {
+		try {
+			yield await parse({
+				name: entry,
+				content: await backend.read(entry),
+			});
+		} catch (error) {
+			await onError(error);
+		}
 	}
 }

@@ -1,6 +1,5 @@
+import type { MaybePromise } from './helpers.js';
 import { isIterable, isAsyncIterable } from './helpers.js';
-
-type MaybePromise<T> = T | Promise<T>;
 
 export namespace createWriter {
 	export type Options<T> = {
