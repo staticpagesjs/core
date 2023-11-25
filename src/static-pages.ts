@@ -5,8 +5,8 @@ import { createWriter } from './create-writer.js';
 
 export namespace staticPages {
 	export type Route<F, T> = {
-		from: Iterable<F> | AsyncIterable<F> | createReader.Options<F>;
-		to: { (data: AsyncIterable<T>): MaybePromise<void>; } | createWriter.Options<T>;
+		from?: Iterable<F> | AsyncIterable<F> | createReader.Options<F>;
+		to?: { (data: AsyncIterable<T>): MaybePromise<void>; } | createWriter.Options<T>;
 		controller?(data: F): MaybePromise<undefined | T | Iterable<T> | AsyncIterable<T>>;
 	};
 }
@@ -57,7 +57,7 @@ export async function staticPages(...routes: staticPages.Route<unknown, unknown>
 		if (createWriter.isOptions(to)) to = createWriter(to);
 
 		if (!isIterable(from) && !isAsyncIterable(from))
-			throw new TypeError(`Expected 'iterable' or 'asyncIterable' at 'from' property.`);
+			throw new TypeError(`Expected 'Iterable' or 'AsyncIterable' at 'from' property.`);
 
 		if (typeof to !== 'function')
 			throw new TypeError(`Expected 'function', recieved '${getType(to)}' at 'to' property.`);

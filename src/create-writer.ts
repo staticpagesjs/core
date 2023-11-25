@@ -1,10 +1,11 @@
 import type { MaybePromise, Backend } from './helpers.js';
 import { isIterable, isAsyncIterable, isBackend } from './helpers.js';
+import * as nodefsBackend from './nodefs-backend.js';
 
 export namespace createWriter {
 	export type Options<T> = {
-		backend: Backend;
-		render(data: T): MaybePromise<Uint8Array | string>;
+		backend?: Backend;
+		render?(data: T): MaybePromise<Uint8Array | string>;
 		name?(data: T): MaybePromise<string>;
 		catch?(error: unknown): MaybePromise<void>;
 		finally?(): MaybePromise<void>;
@@ -19,17 +20,17 @@ const defaultNamer = <T>(data: T) => {
 };
 
 export function createWriter<T>({
-	backend,
-	render,
+	backend = nodefsBackend,
+	render = (data: T) => JSON.stringify(data),
 	name = defaultNamer,
-	catch: catchCallback = (error) => { throw error; },
+	catch: catchCallback = (error: unknown) => { throw error; },
 	finally: finallyCallback,
-}: createWriter.Options<T>) {
+}: createWriter.Options<T> = {}) {
 	if (!isBackend(backend)) throw new TypeError(`Expected 'Backend' implementation at 'backend' property.`);
 
 	return async function (iterable: Iterable<T> | AsyncIterable<T>) {
 		if (!isIterable(iterable) && !isAsyncIterable(iterable))
-			throw new TypeError(`Expected 'iterable' or 'asyncIterable' at callback.`);
+			throw new TypeError(`Expected 'Iterable' or 'AsyncIterable' at callback.`);
 
 		try {
 			for await (const data of iterable) {
@@ -46,5 +47,5 @@ export function createWriter<T>({
 }
 
 createWriter.isOptions = <T>(x: unknown): x is createWriter.Options<T> => {
-	return !!x && typeof x === 'object' && 'backend' in x && 'render' in x;
+	return typeof x === 'undefined' || (!!x && typeof x === 'object' && 'backend' in x && 'render' in x);
 };
