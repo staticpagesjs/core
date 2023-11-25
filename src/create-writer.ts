@@ -1,33 +1,50 @@
-import type { MaybePromise } from './helpers.js';
-import { isIterable, isAsyncIterable } from './helpers.js';
+import type { MaybePromise, Backend } from './helpers.js';
+import { isIterable, isAsyncIterable, isBackend } from './helpers.js';
 
 export namespace createWriter {
 	export type Options<T> = {
-		render(data: Readonly<T>): MaybePromise<string | ArrayBufferView | undefined>;
-		name(data: Readonly<T>): MaybePromise<string>;
-		write(name: string, data: string | ArrayBufferView | undefined): MaybePromise<void>;
+		backend: Backend;
+		render(data: T): MaybePromise<Uint8Array | string>;
+		name?(data: T): MaybePromise<string>;
+		catch?(error: unknown): MaybePromise<void>;
 		finally?(): MaybePromise<void>;
-		onError?(error: unknown): MaybePromise<void>;
 	};
 }
 
-export function createWriter<T>(options: createWriter.Options<T>) {
-	const { render, name, write, onError = (error) => { throw error; } } = options;
+const defaultNamer = <T>(data: T) => {
+	if (!!data && typeof data === 'object' && 'url' in data && typeof data.url === 'string') {
+		return data.url.concat('.html');
+	}
+	return 'unnamed.html';
+};
+
+export function createWriter<T>({
+	backend,
+	render,
+	name = defaultNamer,
+	catch: catchCallback = (error) => { throw error; },
+	finally: finallyCallback,
+}: createWriter.Options<T>) {
+	if (!isBackend(backend)) throw new TypeError(`Expected 'Backend' implementation at 'backend' property.`);
 
 	return async function (iterable: Iterable<T> | AsyncIterable<T>) {
 		if (!isIterable(iterable) && !isAsyncIterable(iterable))
-			throw new Error('Argument type mismatch: expected an \'iterable\' or an \'asyncIterable\' type.');
+			throw new TypeError(`Expected 'iterable' or 'asyncIterable' at callback.`);
 
 		try {
-			for await (const entry of iterable) {
+			for await (const data of iterable) {
 				try {
-					await write(await name(entry), await render(entry));
+					await backend.write(await name(data), await render(data));
 				} catch (error) {
-					await onError(error);
+					await catchCallback(error);
 				}
 			}
 		} finally {
-			await options.finally?.();
+			await finallyCallback?.();
 		}
 	};
 }
+
+createWriter.isOptions = <T>(x: unknown): x is createWriter.Options<T> => {
+	return !!x && typeof x === 'object' && 'backend' in x && 'render' in x;
+};

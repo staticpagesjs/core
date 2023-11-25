@@ -1,17 +1,12 @@
 import type { MaybePromise } from './helpers.js';
 import { getType, isIterable, isAsyncIterable } from './helpers.js';
 import { createReader } from './create-reader.js';
-import * as nodefsBackend from './nodefs-backend.js';
-
-const isCreateWriterOptions = <T>(x: any): x is createReader.Options<T> => {
-	return typeof x === 'object' && !x && 'backend' in x;
-};
-
+import { createWriter } from './create-writer.js';
 
 export namespace staticPages {
 	export type Route<F, T> = {
 		from: Iterable<F> | AsyncIterable<F> | createReader.Options<F>;
-		to(data: AsyncIterable<T>): MaybePromise<void>;
+		to: { (data: AsyncIterable<T>): MaybePromise<void>; } | createWriter.Options<T>;
 		controller?(data: F): MaybePromise<undefined | T | Iterable<T> | AsyncIterable<T>>;
 	};
 }
@@ -58,12 +53,8 @@ export async function staticPages(...routes: staticPages.Route<unknown, unknown>
 
 		let { from, to, controller } = route;
 
-		if (isCreateWriterOptions(from)) {
-			from = createReader({
-				backend: nodefsBackend,
-				...from,
-			});
-		}
+		if (createReader.isOptions(from)) from = createReader(from);
+		if (createWriter.isOptions(to)) to = createWriter(to);
 
 		if (!isIterable(from) && !isAsyncIterable(from))
 			throw new TypeError(`Expected 'iterable' or 'asyncIterable' at 'from' property.`);
@@ -75,7 +66,7 @@ export async function staticPages(...routes: staticPages.Route<unknown, unknown>
 			throw new TypeError(`Expected 'function', recieved '${getType(controller)}' at 'controller' property.`);
 
 		async function* asyncGenerator() {
-			for await (const item of from) {
+			for await (const item of from as any) { // function hoisted to the top, types does not get narrowed properly.
 				const data = controller ? await controller(item) : item;
 				if (isIterable(data) || isAsyncIterable(data)) {
 					yield* data;

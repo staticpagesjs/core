@@ -202,3 +202,23 @@ new_staticPages({
 // core (autoparse, fs-backend)
 // git-backend, gitlab-backend, github-backend
 // twig-renderer
+
+export interface EntryMeta {
+	name: string;
+}
+
+export interface Entry extends EntryMeta {
+	content: Uint8Array | string;
+}
+
+export interface ParsedEntry<T> extends Entry {
+	parsed: T;
+}
+
+export interface ProcessedEntry<T1, T2> extends ParsedEntry<T1> {
+	processed: T2;
+}
+
+export interface RenderedEntry<T1, T2> extends ProcessedEntry<T1, T2> {
+	rendered: Uint8Array | string;
+}

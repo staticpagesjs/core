@@ -29,9 +29,8 @@ export function write(filename: string, data: Uint8Array | string) {
 	return writeFile(filename, data);
 }
 
-
-//TODO:
 export function nodefsBackend(options: any): Backend {
+	//TODO:
 	// Options: since, dependencies
 	return { tree, read, write };
 }
