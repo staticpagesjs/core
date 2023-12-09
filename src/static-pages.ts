@@ -81,12 +81,12 @@ async function* asyncGenerator<F, T>(items: Iterable<F> | AsyncIterable<F>, cont
 }
 
 staticPages.with = ({ from, to, controller }: Partial<staticPages.Route<unknown, unknown>>): { (...routes: Partial<staticPages.Route<unknown, unknown>>[]): Promise<void>; } => {
-	const fromIsCreateReaderOpts = createReader.isOptions(from);
-	const toIsCreateWriterOpts = createWriter.isOptions(to);
+	const fromIsPlainObject = from && typeof from === 'object' && !isIterable(from) && !isAsyncIterable(from);
+	const toIsPlainObject = to && typeof to === 'object';
 	return (...routes: Partial<staticPages.Route<unknown, unknown>>[]): Promise<void> => {
 		return staticPages(...routes.map(x => ({
-			from: fromIsCreateReaderOpts && createReader.isOptions(x.from) ? { ...from, ...x.from } : (x.from ? x.from : from),
-			to: toIsCreateWriterOpts && createWriter.isOptions(x.to) ? { ...to, ...x.to } : (x.to ? x.to : to),
+			from: fromIsPlainObject && x.from && typeof x.from === 'object' && !isIterable(x.from) && !isAsyncIterable(x.from) ? { ...from, ...x.from } : (x.from ? x.from : from),
+			to: toIsPlainObject && x.to && typeof x.to === 'object' ? { ...to, ...x.to } : (x.to ? x.to : to),
 			controller: x.controller ?? controller,
 		}) as staticPages.Route<unknown, unknown>)); // Assume users knows what they do and all options are provided. Assert fails later anyways if not.
 	};
