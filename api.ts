@@ -173,7 +173,7 @@ const x: ParsedFile<boolean>;
 // stat
 
 
-const gitlab = gitlabfs({
+const gitlab = gitlabBackend({
 	repository: '.',
 	branch: 'master',
 	since: Date.now(),

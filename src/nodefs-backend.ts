@@ -1,6 +1,6 @@
 import picomatch from 'picomatch';
 import type { Backend } from './helpers.js';
-import { join, resolve } from 'path';
+import { join, resolve, relative } from 'path';
 import { readdir, readFile, writeFile, stat } from 'fs/promises';
 
 export async function tree(directory: string): Promise<string[]> {
@@ -34,30 +34,44 @@ export namespace nodefsBackend {
 	export type Options = {
 		since?: Date;
 		dependencies?: Record<string, string | string[] | { (matches: string[]): string | string[]; }>;
+		cwd?: string;
 	};
 }
 
 export function nodefsBackend({
 	since,
 	dependencies,
+	cwd = '.',
 }: nodefsBackend.Options = {}): Backend {
 	return {
-		async tree(dirname: string) {
+		/**
+		 * This implementation creates a tree that ignores items older than `since` with no dependencies newer than `since`.
+		 *
+		 * Format of dependencies:
+		 * ```js
+		 * {
+		 *   "dependency1-pattern": "item1-pattern",
+		 *   "dependency2-pattern": ["item1-pattern", "item2-pattern"]
+		 *   "dependency3-pattern": (matches) => ["item1-pattern", "item2-pattern"]
+		 * }
+		 * ```
+		 */
+		async tree(dirname: string): Promise<string[]> {
 			const files = await tree(dirname);
-			if (since) {
-				const mtimes = await Promise.all(
-					files.map(f => stat(resolve(dirname, f)).then(s => [f, s.mtime]))
-				);
+			if (!since) return files;
 
-				return mtimes.filter(x => since < x[1]).map(x => x[0]);
+			const basedir = relative(cwd, dirname);
+			const mtimes = await Promise.all(
+				files.map(f => stat(resolve(basedir, f)).then(s => [f, s.mtime]))
+			);
 
-				return files.filter(async file => {
-					return since < await stat(resolve(cwd, file)).mtime
-						|| micromatch.any(file, triggeredPatterns);
-				});
-				//const triggeredPatterns = getTriggered(cwd, since, triggers);
-			}
-			return files;
+			return mtimes.filter(x => since < x[1]).map(x => x[0]);
+
+			return files.filter(async file => {
+				return since < await stat(resolve(cwd, file)).mtime
+					|| micromatch.any(file, triggeredPatterns);
+			});
+			//const triggeredPatterns = getTriggered(cwd, since, triggers);
 		},
 		read,
 		write,

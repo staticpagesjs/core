@@ -1,11 +1,10 @@
 import picomatch from 'picomatch';
 import type { MaybePromise, Backend } from './helpers.js';
 import { getType, isIterable, isAsyncIterable, isBackend } from './helpers.js';
-import * as nodefsBackend from './nodefs-backend.js';
 
 export namespace createReader {
 	export type Options<T> = {
-		backend?: Backend;
+		backend: Backend;
 		cwd?: string;
 		pattern?: string | string[];
 		ignore?: string | string[];
@@ -16,14 +15,14 @@ export namespace createReader {
 }
 
 export async function* createReader<T>({
-	backend = nodefsBackend,
+	backend,
 	cwd = '.',
 	pattern,
 	ignore,
 	parse = (content: Uint8Array | string) => JSON.parse(content.toString()),
 	catch: catchCallback = (error: unknown) => { throw error; },
 	finally: finallyCallback,
-}: createReader.Options<T> = {}) {
+}: createReader.Options<T>) {
 	if (!isBackend(backend)) throw new TypeError(`Expected 'Backend' implementation at 'backend' property.`);
 	if (typeof cwd !== 'string') throw new TypeError(`Expected 'string', recieved '${getType(cwd)}' at 'cwd' property.`);
 	if (typeof pattern !== 'undefined' && typeof pattern !== 'string' && Array.isArray(pattern)) throw new TypeError(`Expected 'string' or 'string[]', recieved '${getType(pattern)}' at 'pattern' property.`);
@@ -39,7 +38,7 @@ export async function* createReader<T>({
 
 	if (typeof pattern !== 'undefined' || typeof ignore !== 'undefined') {
 		const filteredFilenames = [];
-		const isMatch = picomatch(pattern ?? '**/*', { cwd, ignore });
+		const isMatch = picomatch(pattern ?? '**/*', { ignore });
 		for await (const filename of filenames) {
 			if (isMatch(filename)) {
 				filteredFilenames.push(filename);
@@ -62,5 +61,5 @@ export async function* createReader<T>({
 }
 
 createReader.isOptions = <T>(x: unknown): x is createReader.Options<T> => {
-	return typeof x === 'undefined' || (!!x && typeof x === 'object' && 'backend' in x);
+	return !!x && typeof x === 'object' && 'backend' in x;
 };
