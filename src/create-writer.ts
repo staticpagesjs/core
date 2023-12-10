@@ -2,13 +2,14 @@ import type { MaybePromise, Backend } from './helpers.js';
 import { getType, isIterable, isAsyncIterable, isBackend } from './helpers.js';
 
 export namespace createWriter {
-	export type Options<T> = {
+	export interface Options<T> {
 		backend: Backend;
+		cwd?: string;
 		render(data: T): MaybePromise<Uint8Array | string>;
 		name?(data: T): MaybePromise<string>;
 		catch?(error: unknown): MaybePromise<void>;
 		finally?(): MaybePromise<void>;
-	};
+	}
 }
 
 const defaultNamer = <T>(data: T) => {
@@ -20,6 +21,7 @@ const defaultNamer = <T>(data: T) => {
 
 export function createWriter<T>({
 	backend,
+	cwd = '.',
 	render,
 	name = defaultNamer,
 	catch: catchCallback = (error: unknown) => { throw error; },
@@ -38,7 +40,7 @@ export function createWriter<T>({
 		try {
 			for await (const data of iterable) {
 				try {
-					await backend.write(await name(data), await render(data));
+					await backend.write(cwd + '/' + await name(data), await render(data));
 				} catch (error) {
 					await catchCallback(error);
 				}

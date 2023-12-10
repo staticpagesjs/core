@@ -29,42 +29,60 @@ This project targets small and medium sized projects. The rendering process trie
 [Visit the project page.](https://staticpagesjs.github.io/)
 
 ## Usage
-- __Readers__ provides an iterable list of page data.
-- __Controllers__ can manipulate and extend each data object.
-- __Writers__ render the final output for you.
 
 ```js
 import staticPages from '@static-pages/core';
-import markdownReader from '@static-pages/markdown-reader';
-import yamlReader from '@static-pages/yaml-reader';
-import twigWriter from '@static-pages/twig-writer';
+import createFSBackend from '@static-pages/nodefs-backend';
+import parsers from '@static-pages/parsers';
+import twig from '@static-pages/twig-renderer';
 
-staticPages({
-    from: markdownReader({
-        pattern: "pages/**/*.md"
-    }),
-    to: twigWriter({
-        view: "content.html.twig",
-        viewsDir: "path/to/views/folder",
-        outDir: "path/to/output/folder",
-    }),
+// Handles filesystem operations for us.
+const fsBackend = createFSBackend({
+    cwd: 'path/to/project/root'
+});
+
+// Default options for every `Route`.
+const generate = staticPages.with({
+    from: {
+        backend: fsBackend,
+        parse: parsers.autodetect, // guess & parse files by their extension
+    },
+    to: {
+        backend: fsBackend,
+        cwd: 'dist', // the output directory
+        render: twig({
+            view: 'content.html.twig',
+            viewsDir: 'path/to/views/folder',
+        }),
+    },
     controller(data) {
-        data.timestamp = new Date().toJSON(); // adds a "timestamp" variable
+        data.now = new Date().toJSON(); // adds a 'now' variable to the template context
         return data; // returning the data is required if you want to send it to the renderer
     }
+});
+
+// Generate every document type as a page.
+generate({
+    from: {
+        cwd: 'pages',
+        pattern: '**/*.md',
+    },
 }, {
-    from: yamlReader({ // assume we have the home page data in yaml format.
-        pattern: "home/*.yaml" // <-- reads home/en.yaml, home/de.yaml, home/fr.yaml etc.
-    }),
-    to: twigWriter({
-        view: "home.html.twig",
-        viewsDir: "path/to/views/folder",
-        outDir: "path/to/output/folder",
-    }),
-    controller(data) {
-        data.commitHash = yourGetCommitHashFn();
-        return data;
-    }
+    from: [
+        { title: 'About', url: 'about', body: 'About us content' },
+        { title: 'Privacy', url: 'privacy', body: 'Privacy content' },
+    ],
+}, {
+    from: {
+        cwd: 'home',
+        pattern: '*.yaml',
+    },
+    to: {
+        render: twig({
+            view: 'home.html.twig',
+            viewsDir: 'path/to/views/folder',
+        }),
+    },
 })
 .catch(error => {
     console.error('Error:', error);
@@ -72,22 +90,71 @@ staticPages({
 });
 ```
 
+### Notes
+
+> The `controller` may return with multiple documents; each will be rendered as a separate page. Alternatively it may return `undefined` to prevent the rendering of the current document.
+
+> The `from` parameter can also recieve an `Iterable` or an `AsyncIterable` type!
+
+> The `to` parameter can also recieve a `function` that handles the document rendering and storing!
+
+
 ## `staticPages(...routes: Route[]): Promise<void>`
 
 Each route consists of a `from`, `to` and optionally a `controller` property matching the definition below.
 
 ```ts
-type Data = Record<string | symbol | number, unknown>;
-type Route = {
-    from: Iterable<Data> | AsyncIterable<Data>;
-    to(data: AsyncIterable<Data>): void | Promise<void>;
-    controller?(data: Data): undefined | Data | Iterable<Data> | AsyncIterable<Data> | Promise<undefined | Data | Iterable<Data> | AsyncIterable<Data>>;
-};
+interface Route<F, T> {
+    from: Iterable<F> | AsyncIterable<F> | CreateReaderOptions<F>;
+    to: { (data: AsyncIterable<T>): MaybePromise<void>; } | CreateWriterOptions<T>;
+    controller?(data: F): MaybePromise<undefined | T | Iterable<T> | AsyncIterable<T>>;
+}
+
+type MaybePromise<T> = T | Promise<T>;
+
+interface CreateReaderOptions<T> {
+    backend: Backend;
+    cwd?: string;
+    pattern?: string | string[];
+    ignore?: string | string[];
+    parse?(content: Uint8Array | string, filename: string): MaybePromise<T>;
+    catch?(error: unknown): MaybePromise<void>;
+    finally?(): MaybePromise<void>;
+}
+
+interface CreateWriterOptions<T> {
+    backend: Backend;
+    cwd?: string;
+    render(data: T): MaybePromise<Uint8Array | string>;
+    name?(data: T): MaybePromise<string>;
+    catch?(error: unknown): MaybePromise<void>;
+    finally?(): MaybePromise<void>;
+}
+
+interface Backend {
+    tree(dirname: string): MaybePromise<Iterable<string> | AsyncIterable<string>>;
+    read(filename: string): MaybePromise<Uint8Array | string>;
+    write(filename: string, data: Uint8Array | string): MaybePromise<void>;
+}
 ```
 
-### Notes
+## `staticPages.with(defaults: Partial<Route>): { (...routes: Partial<Route>[]): Promise<void>; }`
 
-The `controller` may return multiple `Data` objects; each will be rendered as a separate page. Alternatively it may return `undefined` to prevent the rendering of the current page.
+Preconfigures a separate instance of the `staticPages` call with the given default parameters.
+These only works as fallback values, you can override every value later.
+
+If a `from` or `to` parameter is a plain object in both defaults and later at the route definition they will be merged (see usage example).
+
+### `CreateReaderOptions` built-in default parameters when not provided
+- `cwd`: `'.'`
+- `parse`: `JSON.parse`
+- `catch`: `(err) => { throw err; }`
+
+### `CreateWriterOptions` built-in default parameters when not provided
+- `cwd`: `'.'`
+- `name`: `(data) => data.url`
+- `catch`: `(err) => { throw err; }`
+
 
 ## Missing a feature?
 Create an issue describing your needs. If it fits the scope of the project I will implement it or you can implement it your own and submit a pull request.

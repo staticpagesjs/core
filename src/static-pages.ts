@@ -4,11 +4,11 @@ import { createReader } from './create-reader.js';
 import { createWriter } from './create-writer.js';
 
 export namespace staticPages {
-	export type Route<F, T> = {
+	export interface Route<F, T> {
 		from: Iterable<F> | AsyncIterable<F> | createReader.Options<F>;
 		to: { (data: AsyncIterable<T>): MaybePromise<void>; } | createWriter.Options<T>;
 		controller?(data: F): MaybePromise<undefined | T | Iterable<T> | AsyncIterable<T>>;
-	};
+	}
 }
 
 export async function staticPages<F1, T1>(...route: [

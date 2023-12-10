@@ -3,7 +3,7 @@ import type { MaybePromise, Backend } from './helpers.js';
 import { getType, isIterable, isAsyncIterable, isBackend } from './helpers.js';
 
 export namespace createReader {
-	export type Options<T> = {
+	export interface Options<T> {
 		backend: Backend;
 		cwd?: string;
 		pattern?: string | string[];
@@ -11,7 +11,7 @@ export namespace createReader {
 		parse?(content: Uint8Array | string, filename: string): MaybePromise<T>;
 		catch?(error: unknown): MaybePromise<void>;
 		finally?(): MaybePromise<void>;
-	};
+	}
 }
 
 export async function* createReader<T>({
