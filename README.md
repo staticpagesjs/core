@@ -32,7 +32,7 @@ This project targets small and medium sized projects. The rendering process trie
 ```js
 import staticPages from '@static-pages/core';
 import createFSBackend from '@static-pages/nodefs-backend';
-import parsers from '@static-pages/parsers';
+import autodetectParser from '@static-pages/autodetect-parser';
 import twig from '@static-pages/twig-renderer';
 
 // Handles filesystem operations for us.
@@ -44,19 +44,24 @@ const fsBackend = createFSBackend({
 const generate = staticPages.with({
     from: {
         backend: fsBackend,
-        parse: parsers.autodetect, // guess & parse files by their extension
+        // guess & parse files by their extension
+        parse: autodetectParser,
     },
     to: {
         backend: fsBackend,
-        cwd: 'dist', // the output directory
+        // sets the output directory
+        cwd: 'dist',
         render: twig({
             view: 'content.html.twig',
             viewsDir: 'path/to/views/folder',
         }),
     },
     controller(data) {
-        data.now = new Date().toJSON(); // adds a 'now' variable to the template context
-        return data; // returning the data is required if you want to send it to the renderer
+        // adds a 'now' variable to the template context
+        data.now = new Date().toJSON();
+
+        // returning the data is required if you want to send it to the renderer
+        return data;
     }
 });
 
