@@ -5,8 +5,7 @@
 ![npms.io (quality)](https://img.shields.io/npms-io/quality-score/@static-pages/core?label=quality)
 ![Maintenance](https://img.shields.io/maintenance/yes/2023)
 
-This package contains only the core; this means it does not provide CLI support or readers and writers.
-You can import this library to your JS project then add your own controllers, readers and writers.
+This package contains only the core; this means it does not provide CLI support, parsers, renderers and backends.
 
 Yet another static pages generator?
 Yes! Because I browsed the whole jamstack scene, but could not find one which
@@ -113,21 +112,34 @@ interface Route<F, T> {
 type MaybePromise<T> = T | Promise<T>;
 
 interface CreateReaderOptions<T> {
+    // Handles file operations
     backend: Backend;
+    // Current working directory
     cwd?: string;
+    // File patterns to include
     pattern?: string | string[];
+    // File patterns to exclude
     ignore?: string | string[];
+    // Callback to parse a file content into an object
     parse?(content: Uint8Array | string, filename: string): MaybePromise<T>;
+    // Called on error
     catch?(error: unknown): MaybePromise<void>;
+    // Called when the last document is read
     finally?(): MaybePromise<void>;
 }
 
 interface CreateWriterOptions<T> {
+    // Handles file operations
     backend: Backend;
+    // Current working directory
     cwd?: string;
+    // Callback that renders the document into a page
     render(data: T): MaybePromise<Uint8Array | string>;
+    // Callback that retrieves the filename (URL) of a page
     name?(data: T): MaybePromise<string>;
+    // Called on error
     catch?(error: unknown): MaybePromise<void>;
+    // Called when the last document is read
     finally?(): MaybePromise<void>;
 }
 
