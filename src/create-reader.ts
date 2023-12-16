@@ -25,6 +25,7 @@ export async function* createReader<T>({
 }: createReader.Options<T>) {
 	if (!isBackend(backend)) throw new TypeError(`Expected 'Backend' implementation at 'backend' property.`);
 	if (typeof cwd !== 'string') throw new TypeError(`Expected 'string', recieved '${getType(cwd)}' at 'cwd' property.`);
+	if (!cwd) throw new TypeError(`Expected non-empty string at 'cwd'`);
 	if (typeof pattern !== 'undefined' && typeof pattern !== 'string' && Array.isArray(pattern)) throw new TypeError(`Expected 'string' or 'string[]', recieved '${getType(pattern)}' at 'pattern' property.`);
 	if (typeof ignore !== 'undefined' && typeof ignore !== 'string' && Array.isArray(ignore)) throw new TypeError(`Expected 'string' or 'string[]', recieved '${getType(ignore)}' at 'ignore' property.`);
 	if (typeof parse !== 'function') throw new TypeError(`Expected 'function', recieved '${getType(parse)}' at 'parse' property.`);
