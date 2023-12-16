@@ -3,7 +3,7 @@
 [![Build Status](https://github.com/staticpagesjs/core/actions/workflows/build.yaml/badge.svg)](https://github.com/staticpagesjs/core/actions/workflows/build.yaml)
 [![Coverage Status](https://coveralls.io/repos/github/staticpagesjs/core/badge.svg?branch=master)](https://coveralls.io/github/staticpagesjs/core?branch=master)
 ![npms.io (quality)](https://img.shields.io/npms-io/quality-score/@static-pages/core?label=quality)
-![Maintenance](https://img.shields.io/maintenance/yes/2023)
+![Maintenance](https://img.shields.io/maintenance/yes/2024)
 
 This package contains only the core; this means it does not provide CLI support, parsers, renderers and backends.
 
@@ -22,10 +22,12 @@ Yes! Because I browsed the whole jamstack scene, but could not find one which
 And because I wrote a ton of custom static generators before; I tought I can improve the concepts to a point where its (hopefully) useful for others.
 
 ## Where should I use this?
+
 This project targets small and medium sized projects. The rendering process tries to be as fast as possible so its also useful when you need performance.
 
 ## Documentation
-[Visit the project page.](https://staticpagesjs.github.io/)
+
+For detailed information, visit the [project page](https://staticpagesjs.github.io/).
 
 ## Usage
 
@@ -66,12 +68,14 @@ const generate = staticPages.with({
 });
 
 // Generate every document type as a page.
+// One route equals one batch of similar pages.
 generate({
     from: {
         cwd: 'pages',
         pattern: '**/*.md',
     },
 }, {
+    // Any Iterable or AsyncIterable also accepted here
     from: [
         { title: 'About', url: 'about', body: 'About us content' },
         { title: 'Privacy', url: 'privacy', body: 'Privacy content' },
@@ -96,7 +100,7 @@ generate({
 
 ### Notes
 
-> The `controller` may return with multiple documents; each will be rendered as a separate page. Alternatively it may return `undefined` to prevent the rendering of the current document.
+> The `controller` may return with multiple documents, each will be rendered as a separate page. Alternatively it may return `undefined` to prevent the rendering of the current document.
 
 > The `from` parameter can also recieve an `Iterable` or an `AsyncIterable` type!
 
@@ -154,6 +158,23 @@ interface Backend {
     write(filename: string, data: Uint8Array | string): MaybePromise<void>;
 }
 ```
+
+### Backend interface
+
+When you use the `createReader` and `createWriter` interfaces to read and write documents, you must provide a `Backend` implementation which provides the following members:
+
+- `tree(dirname: string): MaybePromise<Iterable<string> | AsyncIterable<string>>;`
+
+Should list all filenames recursively in the `dirname` directory. All filenames should be relative to `dirname`.
+
+- `read(filename: string): MaybePromise<Uint8Array | string>;`
+
+Should retrieve the contents of a specified file. The `filename` is received exactly as provided by the `tree()` call, without any modifications.
+
+- `write(filename: string, data: Uint8Array | string): MaybePromise<void>;`
+
+Should persist data into a given file.
+
 
 ## `staticPages.with(defaults: Partial<Route>): { (...routes: Partial<Route>[]): Promise<void>; }`
 
