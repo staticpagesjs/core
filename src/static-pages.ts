@@ -4,7 +4,7 @@ import { createReader } from './create-reader.js';
 import { createWriter } from './create-writer.js';
 
 export namespace staticPages {
-	export interface Route<F, T> {
+	export interface Route<F = unknown, T = unknown> {
 		from: Iterable<F> | AsyncIterable<F> | createReader.Options<F>;
 		to: { (data: AsyncIterable<T>): MaybePromise<void>; } | createWriter.Options<T>;
 		controller?(data: F): MaybePromise<undefined | T | Iterable<T> | AsyncIterable<T>>;
@@ -44,9 +44,9 @@ export async function staticPages<F1, T1, F2, T2, F3, T3, F4, T4, F5, T5, F6, T6
 	staticPages.Route<F5, T5>,
 	staticPages.Route<F6, T6>
 ]): Promise<void>;
-export async function staticPages(...routes: staticPages.Route<unknown, unknown>[]): Promise<void>;
+export async function staticPages(...routes: staticPages.Route[]): Promise<void>;
 
-export async function staticPages(...routes: staticPages.Route<unknown, unknown>[]): Promise<void> {
+export async function staticPages(...routes: staticPages.Route[]): Promise<void> {
 	for (const route of routes) {
 		if (typeof route !== 'object' || !route)
 			throw new TypeError(`Expected 'object', recieved '${getType(route)}'.`);
@@ -80,14 +80,38 @@ async function* asyncGenerator<F, T>(items: Iterable<F> | AsyncIterable<F>, cont
 	}
 }
 
-staticPages.with = ({ from, to, controller }: Partial<staticPages.Route<unknown, unknown>>): { (...routes: Partial<staticPages.Route<unknown, unknown>>[]): Promise<void>; } => {
-	const fromIsObject = from && typeof from === 'object' && !isIterable(from) && !isAsyncIterable(from);
-	const toIsObject = to && typeof to === 'object';
-	return (...routes: Partial<staticPages.Route<unknown, unknown>>[]): Promise<void> => {
-		return staticPages(...routes.map(x => ({
-			from: fromIsObject && x.from && typeof x.from === 'object' && !isIterable(x.from) && !isAsyncIterable(x.from) ? { ...from, ...x.from } : (x.from ? x.from : from),
-			to: toIsObject && x.to && typeof x.to === 'object' ? { ...to, ...x.to } : (x.to ? x.to : to),
-			controller: x.controller ?? controller,
-		}) as staticPages.Route<unknown, unknown>)); // Assume users knows what they do and all options are provided. Assert fails later anyways if not.
-	};
+staticPages.with = ({ from, to, controller }: Partial<staticPages.Route>): typeof staticPages => {
+	const withFunction = (newValue: Partial<staticPages.Route>) =>
+		staticPages.with({
+			from: determineFrom(from, newValue.from),
+			to: determineTo(to, newValue.to),
+			controller: newValue.controller ?? controller,
+		});
+
+	function modifiedStaticPages(...routes: Partial<staticPages.Route>[]): Promise<void> {
+		return staticPages(...routes.map(route => ({
+			from: determineFrom(from, route.from)!,
+			to: determineTo(to, route.to)!,
+			controller: route.controller ?? controller,
+		})));
+	}
+
+	modifiedStaticPages.with = withFunction;
+	return modifiedStaticPages;
 };
+
+function determineFrom(oldValue?: staticPages.Route['from'], newValue?: staticPages.Route['from']) {
+	if (newValue && typeof newValue === 'object' && !isIterable(newValue) && !isAsyncIterable(newValue) &&
+		oldValue && typeof oldValue === 'object' && !isIterable(oldValue) && !isAsyncIterable(oldValue)
+	) return { ...oldValue, ...newValue };
+
+	return newValue ?? oldValue;
+}
+
+function determineTo(oldValue?: staticPages.Route['to'], newValue?: staticPages.Route['to']) {
+	if (newValue && typeof newValue === 'object' && !isIterable(newValue) && !isAsyncIterable(newValue) &&
+		oldValue && typeof oldValue === 'object' && !isIterable(oldValue) && !isAsyncIterable(oldValue)
+	) return { ...oldValue, ...newValue };
+
+	return newValue ?? oldValue;
+}
