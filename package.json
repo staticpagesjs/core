@@ -59,12 +59,8 @@
     "c8": "^8.0.0",
     "eslint": "^8.1.0",
     "mocha": "^10.2.0",
+    "picomatch": "^3.0.1",
     "rimraf": "^5.0.1",
     "typescript": "^5.1.6"
-  },
-  "dependencies": {
-    "gray-matter": "^4.0.3",
-    "micromatch": "^4.0.5",
-    "picomatch": "^3.0.1"
   }
 }
