@@ -33,26 +33,26 @@ For detailed information, visit the [project page](https://staticpagesjs.github.
 
 ```js
 import staticPages from '@static-pages/core';
-import createFSBackend from '@static-pages/nodefs-backend';
+// Handles filesystem operations
+import nodefs from '@static-pages/nodefs';
+// Guess & parse files by their extension
 import autoparse from '@static-pages/autoparse';
-import twig from '@static-pages/twig-renderer';
+// Renders twig style templates for us
+import twig from '@static-pages/twig';
 
-// Handles filesystem operations for us.
-const fsBackend = createFSBackend({
+const fsBackend = nodefs({
     cwd: 'path/to/project/root'
 });
 
-// Default options for every `Route`.
+// Default options for every `Route` via .with() call.
 const generate = staticPages.with({
     from: {
         backend: fsBackend,
-        // guess & parse files by their extension
         parse: autoparse,
     },
     to: {
         backend: fsBackend,
-        // sets the output directory
-        cwd: 'dist',
+        cwd: 'dist', // output directory
         render: twig({
             view: 'content.html.twig',
             viewsDir: 'path/to/views/folder',
@@ -62,7 +62,7 @@ const generate = staticPages.with({
         // adds a 'now' variable to the template context
         data.now = new Date().toJSON();
 
-        // returning the data is required if you want to send it to the renderer
+        // returning the data is required
         return data;
     }
 });
@@ -75,7 +75,7 @@ generate({
         pattern: '**/*.md',
     },
 }, {
-    // Any Iterable or AsyncIterable also accepted here
+    // Any Iterable or AsyncIterable also accepted eg. an array
     from: [
         { title: 'About', url: 'about', body: 'About us content' },
         { title: 'Privacy', url: 'privacy', body: 'Privacy content' },
