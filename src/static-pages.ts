@@ -109,8 +109,8 @@ function determineFrom(oldValue?: staticPages.Route['from'], newValue?: staticPa
 }
 
 function determineTo(oldValue?: staticPages.Route['to'], newValue?: staticPages.Route['to']) {
-	if (newValue && typeof newValue === 'object' && !isIterable(newValue) && !isAsyncIterable(newValue) &&
-		oldValue && typeof oldValue === 'object' && !isIterable(oldValue) && !isAsyncIterable(oldValue)
+	if (newValue && typeof newValue === 'object' &&
+		oldValue && typeof oldValue === 'object'
 	) return { ...oldValue, ...newValue };
 
 	return newValue ?? oldValue;
