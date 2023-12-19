@@ -1,6 +1,7 @@
 # CHANGELOG
 
 ## 7.0.0
+- New `CreateReader` and `CreateWriter` interfaces available at `from` and `to` props.
 - Writers now recieve an AsyncIterable as the previous method made too much confusion.
 - Minor type defintion improvements.
 - Test suite switched from tap to mocha for now.
