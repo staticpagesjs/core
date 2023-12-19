@@ -5,7 +5,7 @@
 ![npms.io (quality)](https://img.shields.io/npms-io/quality-score/@static-pages/core?label=quality)
 ![Maintenance](https://img.shields.io/maintenance/yes/2024)
 
-This package contains only the core; this means it does not provide CLI support, parsers, renderers and backends.
+This package contains only the core; this means it does not provide CLI support, parsers, renderers and backends. For a complete environment see [@static-pages/starter](https://www.npmjs.com/package/@static-pages/starter).
 
 Yet another static pages generator?
 Yes! Because I browsed the whole jamstack scene, but could not find one which
