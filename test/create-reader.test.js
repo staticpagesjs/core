@@ -211,5 +211,4 @@ describe('Static Pages CreateReader Tests', () => {
 
 		}, { message: `Expected 'function', recieved 'number' at 'finally' property.` });
 	});
-
 });
