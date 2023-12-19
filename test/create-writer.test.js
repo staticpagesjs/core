@@ -102,7 +102,7 @@ describe('Static Pages CreateWriter Tests', () => {
 		}, { message: `Expected 'Backend' implementation at 'backend' property.` });
 	});
 
-	it('should throw when "to.cwd" recieves an invalid type', async () => {
+	it('should throw when "cwd" recieves an invalid type', async () => {
 		await assert.rejects(async () => {
 			createWriter({
 				backend: createMockBackend(),
