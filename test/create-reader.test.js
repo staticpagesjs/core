@@ -72,7 +72,7 @@ describe('Static Pages CreateReader Tests', () => {
 		assert.deepStrictEqual(recieved, expected);
 	});
 
-	it('should throw with default settings', async () => {
+	it('should throw with default settings on reading/parsing errors', async () => {
 		await assert.rejects(async () => {
 			const reader = createReader({
 				backend: minimalBackend,
