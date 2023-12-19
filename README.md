@@ -34,7 +34,7 @@ For detailed information, visit the [project page](https://staticpagesjs.github.
 ```js
 import staticPages from '@static-pages/core';
 import createFSBackend from '@static-pages/nodefs-backend';
-import autodetectParser from '@static-pages/autodetect-parser';
+import autoparse from '@static-pages/autoparse';
 import twig from '@static-pages/twig-renderer';
 
 // Handles filesystem operations for us.
@@ -47,7 +47,7 @@ const generate = staticPages.with({
     from: {
         backend: fsBackend,
         // guess & parse files by their extension
-        parse: autodetectParser,
+        parse: autoparse,
     },
     to: {
         backend: fsBackend,
