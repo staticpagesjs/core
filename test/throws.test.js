@@ -1,7 +1,7 @@
 import assert from 'assert';
 import staticPages from '../esm/index.js';
 
-const mockBackend = { tree(){ return [1]; }, read(){ return 1; }, write(){} };
+const mockBackend = { tree(){ return [1]; }, read(){ return 2; }, write(){} };
 
 describe('Static Pages Throws Tests', () => {
 	it('should throw when the route is not an object', async () => {
