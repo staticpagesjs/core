@@ -9,7 +9,7 @@ jobs:
   build:
     environment: build
     runs-on: ubuntu-latest
-    container: node:10
+    container: node:14
     steps:
       - uses: actions/checkout@v3
       - name: Install node packages
