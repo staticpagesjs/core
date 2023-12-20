@@ -52,8 +52,8 @@ const generate = staticPages.with({
         backend: fsBackend,
         cwd: 'dist', // output directory
         render: twig({
-            view: 'content.html.twig',
             viewsDir: 'path/to/views/folder',
+            view({ view }) { return (view ?? 'content') + '.html.twig'; },
         }),
     },
     controller(data) {
