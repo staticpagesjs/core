@@ -13,11 +13,10 @@ Yes! Because I browsed the whole jamstack scene, but could not find one which
 2. can read input from any source (YAML, JSON, front-matter style markdowns, database etc.)
 3. can render with any template engine (Twig, ejs, Pug, Mustache etc.)
 4. supports incremental builds
-5. has a flexible CLI tool (see [@static-pages/cli](https://www.npmjs.com/package/@static-pages/cli) on npm)
-6. has a Docker image (see [staticpages/cli](https://hub.docker.com/repository/docker/staticpages/cli) on dockerhub)
-7. written in JS (preferably TypeScript)
-8. easy to extend with JS code
-9. learning and using is easy (Gatsby, Hugo, Jekyll, Eleventy etc. are so cool but harder to learn and configure)
+5. written in JS (preferably TypeScript)
+6. easy to extend with JS code
+7. learning and using is easy (Gatsby, Hugo, Jekyll, Eleventy etc. are so cool but harder to learn and configure)
+8. has a Docker image (see [staticpages/cli](https://hub.docker.com/repository/docker/staticpages/cli) on dockerhub)
 
 And because I wrote a ton of custom static generators before; I tought I can improve the concepts to a point where its (hopefully) useful for others.
 
