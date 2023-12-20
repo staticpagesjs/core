@@ -130,9 +130,7 @@ interface CreateReaderOptions<T> {
     // Callback to parse a file content into an object
     parse?(content: Uint8Array | string, filename: string): MaybePromise<T>;
     // Called on error
-    catch?(error: unknown): MaybePromise<void>;
-    // Called when the last document is read
-    finally?(): MaybePromise<void>;
+    onError?(error: unknown): MaybePromise<void>;
 }
 
 interface CreateWriterOptions<T> {
@@ -145,9 +143,7 @@ interface CreateWriterOptions<T> {
     // Callback that retrieves the filename (URL) of a page
     name?(data: T): MaybePromise<string>;
     // Called on error
-    catch?(error: unknown): MaybePromise<void>;
-    // Called when the last document is read
-    finally?(): MaybePromise<void>;
+    onError?(error: unknown): MaybePromise<void>;
 }
 
 interface Backend {
@@ -184,12 +180,12 @@ If a `from` or `to` parameter is a plain object in both defaults and later at th
 ### `CreateReaderOptions` built-in default parameters when not provided
 - `cwd`: `'.'`
 - `parse`: `JSON.parse`
-- `catch`: `(err) => { throw err; }`
+- `onError`: `(err) => { throw err; }`
 
 ### `CreateWriterOptions` built-in default parameters when not provided
 - `cwd`: `'.'`
 - `name`: `(data) => data.url`
-- `catch`: `(err) => { throw err; }`
+- `onError`: `(err) => { throw err; }`
 
 
 ## Missing a feature?
