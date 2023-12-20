@@ -7,8 +7,7 @@ export namespace createWriter {
 		cwd?: string;
 		render(data: T): MaybePromise<Uint8Array | string>;
 		name?(data: T): MaybePromise<string>;
-		catch?(error: unknown): MaybePromise<void>;
-		finally?(): MaybePromise<void>;
+		onError?(error: unknown): MaybePromise<void>;
 	}
 }
 
@@ -24,31 +23,25 @@ export function createWriter<T>({
 	cwd = '.',
 	render,
 	name = defaultNamer,
-	catch: catchCallback = (error: unknown) => { throw error; },
-	finally: finallyCallback,
+	onError = (error: unknown) => { throw error; },
 }: createWriter.Options<T>) {
 	if (!isBackend(backend)) throw new TypeError(`Expected 'Backend' implementation at 'backend' property.`);
 	if (typeof cwd !== 'string') throw new TypeError(`Expected 'string', recieved '${getType(cwd)}' at 'cwd' property.`);
 	if (!cwd) throw new TypeError(`Expected non-empty string at 'cwd'.`);
 	if (typeof render !== 'function') throw new TypeError(`Expected 'function', recieved '${getType(render)}' at 'render' property.`);
 	if (typeof name !== 'function') throw new TypeError(`Expected 'function', recieved '${getType(name)}' at 'name' property.`);
-	if (typeof catchCallback !== 'function') throw new TypeError(`Expected 'function', recieved '${getType(catchCallback)}' at 'catch' property.`);
-	if (typeof finallyCallback !== 'undefined' && typeof finallyCallback !== 'function')  throw new TypeError(`Expected 'function', recieved '${getType(finallyCallback)}' at 'finally' property.`);
+	if (typeof onError !== 'function') throw new TypeError(`Expected 'function', recieved '${getType(onError)}' at 'onError' property.`);
 
 	return async function (iterable: Iterable<T> | AsyncIterable<T>) {
 		if (!isIterable(iterable) && !isAsyncIterable(iterable))
 			throw new TypeError(`Expected 'Iterable' or 'AsyncIterable' at callback.`);
 
-		try {
-			for await (const data of iterable) {
-				try {
-					await backend.write(cwd + '/' + await name(data), await render(data));
-				} catch (error) {
-					await catchCallback(error);
-				}
+		for await (const data of iterable) {
+			try {
+				await backend.write(cwd + '/' + await name(data), await render(data));
+			} catch (error) {
+				await onError(error);
 			}
-		} finally {
-			await finallyCallback?.();
 		}
 	};
 }

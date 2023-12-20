@@ -47,28 +47,6 @@ describe('Static Pages CreateWriter Tests', () => {
 		assert.deepStrictEqual(mockBackend.output, expected);
 	});
 
-	it('calls finally when done', async () => {
-		const input = [{ url: 'one', body: '1' }, { url: 'two', body: '2' }];
-		const expected = [
-			['./one.html', '{"url":"one","body":"1"}'],
-			['./two.html', '{"url":"two","body":"2"}'],
-			'finally'
-		];
-
-		const mockBackend = createMockBackend();
-		const writer = createWriter({
-			backend: mockBackend,
-			render: JSON.stringify,
-			finally() {
-				mockBackend.output.push('finally');
-			}
-		});
-
-		await writer(input);
-
-		assert.deepStrictEqual(mockBackend.output, expected);
-	});
-
 	it('can handle errors', async () => {
 		const expected = 'Some error thrown.';
 		let actual = null;
@@ -76,7 +54,7 @@ describe('Static Pages CreateWriter Tests', () => {
 		const writer = createWriter({
 			backend: createMockBackend(),
 			render() { throw new Error('Some error thrown.'); },
-			catch(error) { actual = error.message; }
+			onError(error) { actual = error.message; }
 		});
 		await writer(input);
 		assert.deepStrictEqual(actual, expected);
@@ -141,24 +119,14 @@ describe('Static Pages CreateWriter Tests', () => {
 		}, { message: `Expected 'function', recieved 'number' at 'name' property.` });
 	});
 
-	it('should throw when "catch" recieves an invalid type', async () => {
+	it('should throw when "onError" recieves an invalid type', async () => {
 		await assert.rejects(async () => {
 			createWriter({
 				backend: createMockBackend(),
 				render: JSON.stringify,
-				catch: 123
+				onError: 123
 			});
-		}, { message: `Expected 'function', recieved 'number' at 'catch' property.` });
-	});
-
-	it('should throw when "finally" recieves an invalid type', async () => {
-		await assert.rejects(async () => {
-			createWriter({
-				backend: createMockBackend(),
-				render: JSON.stringify,
-				finally: 123
-			});
-		}, { message: `Expected 'function', recieved 'number' at 'finally' property.` });
+		}, { message: `Expected 'function', recieved 'number' at 'onError' property.` });
 	});
 
 	it('should throw when invalid type recieved as callback parameter', async () => {

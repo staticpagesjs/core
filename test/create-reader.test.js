@@ -55,24 +55,6 @@ describe('Static Pages CreateReader Tests', () => {
 		assert.deepStrictEqual(recieved, expected);
 	});
 
-	it('calls finally when iteration done', async () => {
-		const expected = ['one', 'two', 'finally'];
-		const recieved = [];
-
-		const reader = createReader({
-			backend: mockBackend,
-			finally() {
-				recieved.push('finally');
-			}
-		});
-
-		for await (const item of reader) {
-			recieved.push(item);
-		}
-
-		assert.deepStrictEqual(recieved, expected);
-	});
-
 	it('can handle errors', async () => {
 		const expected = 'Some error thrown.';
 		let recieved = null;
@@ -80,7 +62,7 @@ describe('Static Pages CreateReader Tests', () => {
 		const reader = createReader({
 			backend: mockBackend,
 			parse() { throw new Error('Some error thrown.'); },
-			catch(error) {
+			onError(error) {
 				recieved = error.message;
 			}
 		});
@@ -188,27 +170,15 @@ describe('Static Pages CreateReader Tests', () => {
 		}, { message: `Expected 'function', recieved 'number' at 'parse' property.` });
 	});
 
-	it('should throw when "catch" recieves a non callable', async () => {
+	it('should throw when "onError" recieves a non callable', async () => {
 		await assert.rejects(async () => {
 			const reader = createReader({
 				backend: mockBackend,
-				catch: 123
+				onError: 123
 			});
 
 			await reader.next();
 
-		}, { message: `Expected 'function', recieved 'number' at 'catch' property.` });
-	});
-
-	it('should throw when "finally" recieves a non callable', async () => {
-		await assert.rejects(async () => {
-			const reader = createReader({
-				backend: mockBackend,
-				finally: 123
-			});
-
-			await reader.next();
-
-		}, { message: `Expected 'function', recieved 'number' at 'finally' property.` });
+		}, { message: `Expected 'function', recieved 'number' at 'onError' property.` });
 	});
 });

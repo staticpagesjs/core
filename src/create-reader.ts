@@ -9,8 +9,7 @@ export namespace createReader {
 		pattern?: string | string[];
 		ignore?: string | string[];
 		parse?(content: Uint8Array | string, filename: string): MaybePromise<T>;
-		catch?(error: unknown): MaybePromise<void>;
-		finally?(): MaybePromise<void>;
+		onError?(error: unknown): MaybePromise<void>;
 	}
 }
 
@@ -20,8 +19,7 @@ export async function* createReader<T>({
 	pattern,
 	ignore,
 	parse = (content: Uint8Array | string) => JSON.parse(content.toString()),
-	catch: catchCallback = (error: unknown) => { throw error; },
-	finally: finallyCallback,
+	onError = (error: unknown) => { throw error; },
 }: createReader.Options<T>) {
 	if (!isBackend(backend)) throw new TypeError(`Expected 'Backend' implementation at 'backend' property.`);
 	if (typeof cwd !== 'string') throw new TypeError(`Expected 'string', recieved '${getType(cwd)}' at 'cwd' property.`);
@@ -29,8 +27,7 @@ export async function* createReader<T>({
 	if (typeof pattern !== 'undefined' && typeof pattern !== 'string' && !Array.isArray(pattern)) throw new TypeError(`Expected 'string' or 'string[]', recieved '${getType(pattern)}' at 'pattern' property.`);
 	if (typeof ignore !== 'undefined' && typeof ignore !== 'string' && !Array.isArray(ignore)) throw new TypeError(`Expected 'string' or 'string[]', recieved '${getType(ignore)}' at 'ignore' property.`);
 	if (typeof parse !== 'function') throw new TypeError(`Expected 'function', recieved '${getType(parse)}' at 'parse' property.`);
-	if (typeof catchCallback !== 'function') throw new TypeError(`Expected 'function', recieved '${getType(catchCallback)}' at 'catch' property.`);
-	if (typeof finallyCallback !== 'undefined' && typeof finallyCallback !== 'function')  throw new TypeError(`Expected 'function', recieved '${getType(finallyCallback)}' at 'finally' property.`);
+	if (typeof onError !== 'function') throw new TypeError(`Expected 'function', recieved '${getType(onError)}' at 'onError' property.`);
 
 	let filenames = await backend.tree(cwd);
 
@@ -48,16 +45,12 @@ export async function* createReader<T>({
 		filenames = filteredFilenames;
 	}
 
-	try {
-		for await (const filename of filenames) {
-			try {
-				yield await parse(await backend.read(filename), filename);
-			} catch (error) {
-				await catchCallback(error);
-			}
+	for await (const filename of filenames) {
+		try {
+			yield await parse(await backend.read(filename), filename);
+		} catch (error) {
+			await onError(error);
 		}
-	} finally {
-		await finallyCallback?.();
 	}
 }
 
