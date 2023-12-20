@@ -1,5 +1,5 @@
 const assert = require('assert');
-const staticPages = require('../cjs/index.js').default;
+const { staticPages } = require('../cjs/index.js');
 
 const seq = n => Array.from({ length: n }, (v, i) => ({ a: i }));
 
@@ -11,8 +11,13 @@ function createWriter() {
 	return writer;
 }
 
-describe('Static Pages CJS Tests', () => {
-	it('CommonJS version is importable and working', async () => {
+// If tests ran successfully on the ES module version we
+// does not start the same tests on the CJS version.
+// Things to tests here:
+//   - imports of the dependencies
+//   - exports of this module
+describe('Static Pages CommonJS Tests', () => {
+	it('CJS version is importable and working', async () => {
 		const input = seq(5);
 		const expected = seq(5);
 		const writer = createWriter();
@@ -25,7 +30,7 @@ describe('Static Pages CJS Tests', () => {
 		assert.deepStrictEqual(writer.output, expected);
 	});
 
-	it('can use the imported "picomatch" package', async () => {
+	it('can use the "picomatch" package', async () => {
 		const input = seq(5);
 		const expected = seq(5).filter(x => [0,2,4].includes(x.a));
 		const writer = createWriter();
