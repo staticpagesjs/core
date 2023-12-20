@@ -36,7 +36,7 @@ describe('Static Pages General Tests', () => {
 		assert.deepStrictEqual(writer.output, expected);
 	});
 
-	it('can recieve multiple conversion tasks', async () => {
+	it('can recieve multiple routes', async () => {
 		const input = seq(5);
 		const expected = seq(5);
 		const writer1 = createWriter();
@@ -137,5 +137,150 @@ describe('Static Pages General Tests', () => {
 		});
 
 		assert.deepStrictEqual(writer.output, expected);
+	});
+
+	it('can set defaults using .with() call', async () => {
+		const input = seq(5);
+		const expected = seq(5);
+		const writer = createWriter();
+
+		await staticPages.with({
+			to: writer,
+		})({
+			from: input,
+		});
+
+		assert.deepStrictEqual(writer.output, expected);
+	});
+
+	it('can chain multiple .with() calls', async () => {
+		const input = seq(5);
+		const expected = seq(5).map(x => ({ a: x.a + 1 }));
+		const writer = createWriter();
+
+		await staticPages.with({
+			to: writer,
+			controller(x) { return x; }
+		}).with({
+			controller: undefined // undefined does nothing
+		}).with({
+			controller(x) { return { a: x.a + 1}; }
+		})({
+			controller: undefined, // undefined does nothing
+			from: input
+		});
+
+		assert.deepStrictEqual(writer.output, expected);
+	});
+
+	it('can chain multiple .with() calls and remove defaults with null value', async () => {
+		const input = seq(5);
+		const expected = seq(5);
+		const writer = createWriter();
+
+		await staticPages.with({
+			to: writer,
+		}).with({
+			controller(x) { return { a: x.a + 1}; }
+		})({
+			controller: null, // null removes defaults
+			from: input
+		});
+
+		assert.deepStrictEqual(writer.output, expected);
+	});
+
+	it('uses the CreateReader interface correctly', async () => {
+		const input = seq(5);
+		const expected = seq(5);
+		const writer = createWriter();
+
+		await staticPages({
+			from: {
+				backend: {
+					tree() { return input; },
+					read(f) { return f; },
+					write(f, c) { /* not implemented */ }
+				},
+				parse(x) { return x; }
+			},
+			to: writer,
+		});
+
+		assert.deepStrictEqual(writer.output, expected);
+	});
+
+	it('the CreateReader options can be merged using .with() calls', async () => {
+		const input = seq(5);
+		const expected = seq(5);
+		const writer = createWriter();
+
+		await staticPages.with({
+			from: {
+				backend: {
+					tree() { return input; },
+					read(f) { return f; },
+					write(f, c) { /* not implemented */ }
+				},
+			},
+		})({
+			from: {
+				parse(x) { return x; }
+			},
+			to: writer,
+		});
+
+		assert.deepStrictEqual(writer.output, expected);
+	});
+
+	it('uses the CreateWriter interface correctly', async () => {
+		const input = seq(5);
+		const expected = seq(5);
+		const output = [];
+		const mockBackend = {
+			tree() { return input; },
+			read(f) { return f; },
+			write(f, c) { output.push(c); }
+		};
+
+		await staticPages({
+			from: {
+				backend: mockBackend,
+				parse(x) { return x; }
+			},
+			to: {
+				backend: mockBackend,
+				render(x) { return x; }
+			},
+		});
+
+		assert.deepStrictEqual(output, expected);
+	});
+
+	it('the CreateWriter options can be merged using .with() calls', async () => {
+		const input = seq(5);
+		const expected = seq(5);
+		const output = [];
+		const mockBackend = {
+			tree() { return input; },
+			read(f) { return f; },
+			write(f, c) { output.push(c); }
+		};
+
+		await staticPages.with({
+			to: {
+				backend: mockBackend
+			}
+		})({
+			from: {
+				backend: mockBackend,
+				parse(x) { return x; }
+			},
+			to: {
+				render(x) { return x; }
+			},
+		});
+
+		assert.deepStrictEqual(output, expected);
 	});
 });

@@ -80,19 +80,23 @@ async function* asyncGenerator<F, T>(items: Iterable<F> | AsyncIterable<F>, cont
 	}
 }
 
-staticPages.with = ({ from, to, controller }: Partial<staticPages.Route>): typeof staticPages => {
-	const withFunction = (newValue: Partial<staticPages.Route>) =>
+type NullablePartialRoute = {
+	[P in keyof staticPages.Route]?: null | staticPages.Route[P];
+};
+
+staticPages.with = ({ from, to, controller }: NullablePartialRoute): typeof staticPages => {
+	const withFunction = (newValue: NullablePartialRoute) =>
 		staticPages.with({
-			from: determineFrom(from, newValue.from),
-			to: determineTo(to, newValue.to),
-			controller: newValue.controller ?? controller,
+			from: determineFrom(from, newValue.from)!,
+			to: determineTo(to, newValue.to)!,
+			controller: typeof newValue.controller !== 'undefined' ? newValue.controller : controller,
 		});
 
-	function modifiedStaticPages(...routes: Partial<staticPages.Route>[]): Promise<void> {
+	function modifiedStaticPages(...routes: NullablePartialRoute[]): Promise<void> {
 		return staticPages(...routes.map(route => ({
 			from: determineFrom(from, route.from)!,
 			to: determineTo(to, route.to)!,
-			controller: route.controller ?? controller,
+			controller: (typeof route.controller !== 'undefined' ? route.controller : controller)! ?? undefined,
 		})));
 	}
 
@@ -100,18 +104,18 @@ staticPages.with = ({ from, to, controller }: Partial<staticPages.Route>): typeo
 	return modifiedStaticPages;
 };
 
-function determineFrom(oldValue?: staticPages.Route['from'], newValue?: staticPages.Route['from']) {
+function determineFrom(oldValue?: NullablePartialRoute['from'], newValue?: NullablePartialRoute['from']) {
 	if (newValue && typeof newValue === 'object' && !isIterable(newValue) && !isAsyncIterable(newValue) &&
 		oldValue && typeof oldValue === 'object' && !isIterable(oldValue) && !isAsyncIterable(oldValue)
 	) return { ...oldValue, ...newValue };
 
-	return newValue ?? oldValue;
+	return typeof newValue !== 'undefined' ? newValue : oldValue;
 }
 
-function determineTo(oldValue?: staticPages.Route['to'], newValue?: staticPages.Route['to']) {
+function determineTo(oldValue?: NullablePartialRoute['to'], newValue?: NullablePartialRoute['to']) {
 	if (newValue && typeof newValue === 'object' &&
 		oldValue && typeof oldValue === 'object'
 	) return { ...oldValue, ...newValue };
 
-	return newValue ?? oldValue;
+	return typeof newValue !== 'undefined' ? newValue : oldValue;
 }
