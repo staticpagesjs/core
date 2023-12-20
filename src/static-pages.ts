@@ -104,7 +104,7 @@ staticPages.with = ({ from, to, controller }: NullablePartialRoute): typeof stat
 	return modifiedStaticPages;
 };
 
-function determineFrom(oldValue?: NullablePartialRoute['from'], newValue?: NullablePartialRoute['from']) {
+function determineFrom(oldValue: NullablePartialRoute['from'], newValue: NullablePartialRoute['from']) {
 	if (newValue && typeof newValue === 'object' && !isIterable(newValue) && !isAsyncIterable(newValue) &&
 		oldValue && typeof oldValue === 'object' && !isIterable(oldValue) && !isAsyncIterable(oldValue)
 	) return { ...oldValue, ...newValue };
@@ -112,7 +112,7 @@ function determineFrom(oldValue?: NullablePartialRoute['from'], newValue?: Nulla
 	return typeof newValue !== 'undefined' ? newValue : oldValue;
 }
 
-function determineTo(oldValue?: NullablePartialRoute['to'], newValue?: NullablePartialRoute['to']) {
+function determineTo(oldValue: NullablePartialRoute['to'], newValue: NullablePartialRoute['to']) {
 	if (newValue && typeof newValue === 'object' &&
 		oldValue && typeof oldValue === 'object'
 	) return { ...oldValue, ...newValue };
