@@ -9,14 +9,13 @@ This package contains only the core; this means it does not provide CLI support,
 
 Yet another static pages generator?
 Yes! Because I browsed the whole jamstack scene, but could not find one which
-1. uses MVC pattern
-2. can read input from any source (YAML, JSON, front-matter style markdowns, database etc.)
-3. can render with any template engine (Twig, ejs, Pug, Mustache etc.)
-4. supports incremental builds
-5. written in JS (preferably TypeScript)
-6. easy to extend with JS code
+1. can read input from any source (YAML, JSON, front-matter style markdowns, database etc.)
+2. can render with any template engine (Twig, ejs, Pug, Mustache etc.)
+3. written in JS (preferably TypeScript)
+4. easy to extend with JS code
+5. supports incremental builds
+6. uses MVC pattern
 7. learning and using is easy (Gatsby, Hugo, Jekyll, Eleventy etc. are so cool but harder to learn and configure)
-8. has a Docker image (see [staticpages/cli](https://hub.docker.com/repository/docker/staticpages/cli) on dockerhub)
 
 And because I wrote a ton of custom static generators before; I tought I can improve the concepts to a point where its (hopefully) useful for others.
 
