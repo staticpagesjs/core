@@ -23,7 +23,7 @@ export async function* createReader<T>({
 	ignore,
 	parse = autoparse,
 	onError = (error: unknown) => { throw error; },
-}: createReader.Options<T>) {
+}: createReader.Options<T> = {}) {
 	if (!isFilesystem(fs)) throw new TypeError(`Expected Node FS implementation at 'backend' property.`);
 	if (typeof cwd !== 'string') throw new TypeError(`Expected 'string', recieved '${getType(cwd)}' at 'cwd' property.`);
 	if (!cwd) throw new TypeError(`Expected non-empty string at 'cwd'.`);
@@ -57,7 +57,7 @@ export async function* createReader<T>({
 	for (const filename of filenames) {
 		try {
 			const content: Uint8Array = await new Promise((resolve, reject) => {
-				fs.readFile(filename, null, (err, data) => {
+				fs.readFile(join(cwd, filename), null, (err, data) => {
 					if (err) reject(err);
 					else resolve(data);
 				});
@@ -70,5 +70,5 @@ export async function* createReader<T>({
 }
 
 createReader.isOptions = <T>(x: unknown): x is createReader.Options<T> => {
-	return !!x && typeof x === 'object' && !isIterable(x) && !isAsyncIterable(x);
+	return x == undefined || (!!x && typeof x === 'object' && !isIterable(x) && !isAsyncIterable(x));
 };

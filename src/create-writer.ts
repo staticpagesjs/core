@@ -21,10 +21,8 @@ const defaultNamer = <T>(data: T) => {
 };
 
 const defaultRenderer = <T>(data: T) => {
-	if (!!data && typeof data === 'object' && 'content' in data && (
-		typeof data.content === 'string' || data.content instanceof Uint8Array
-	)) {
-		return data.content;
+	if (!!data && typeof data === 'object' && 'content' in data) {
+		return '' + data.content;
 	}
 	throw new Error(`Missing 'content' field in the document.`);
 };
@@ -35,7 +33,7 @@ export function createWriter<T>({
 	name = defaultNamer,
 	render = defaultRenderer,
 	onError = (error: unknown) => { throw error; },
-}: createWriter.Options<T>) {
+}: createWriter.Options<T> = {}) {
 	if (!isFilesystem(fs)) throw new TypeError(`Expected 'Backend' implementation at 'backend' property.`);
 	if (typeof cwd !== 'string') throw new TypeError(`Expected 'string', recieved '${getType(cwd)}' at 'cwd' property.`);
 	if (!cwd) throw new TypeError(`Expected non-empty string at 'cwd'.`);
@@ -83,5 +81,5 @@ export function createWriter<T>({
 }
 
 createWriter.isOptions = <T>(x: unknown): x is createWriter.Options<T> => {
-	return !!x && typeof x === 'object' && 'render' in x;
+	return x == undefined || (!!x && typeof x === 'object');
 };
