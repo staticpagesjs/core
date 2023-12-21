@@ -19,7 +19,7 @@ And because I wrote a ton of custom static generators before; I tought I can imp
 
 ## Where should I use this?
 
-This project targets small and medium sized projects. The rendering process tries to be as fast as possible so its also useful when you need performance.
+This project targets small and medium sized websites. The rendering process tries to be as fast as possible so its also useful when you need performance.
 
 ## Documentation
 
