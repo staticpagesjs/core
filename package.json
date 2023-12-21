@@ -62,5 +62,9 @@
     "view",
     "template",
     "controller"
-  ]
+  ],
+  "dependencies": {
+    "gray-matter": "^4.0.3",
+    "yaml": "^2.3.4"
+  }
 }

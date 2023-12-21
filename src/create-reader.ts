@@ -1,4 +1,5 @@
 import picomatch from 'picomatch';
+import { autoparse } from './autoparse.js';
 import type { MaybePromise, Filesystem } from './helpers.js';
 import { getType, isIterable, isAsyncIterable, isFilesystem } from './helpers.js';
 import { join, relative } from 'node:path';
@@ -17,10 +18,10 @@ export namespace createReader {
 
 export async function* createReader<T>({
 	fs = nodeFs,
-	cwd = '.',
+	cwd = 'pages',
 	pattern,
 	ignore,
-	parse = (content) => JSON.parse(content.toString()),
+	parse = autoparse,
 	onError = (error: unknown) => { throw error; },
 }: createReader.Options<T>) {
 	if (!isFilesystem(fs)) throw new TypeError(`Expected Node FS implementation at 'backend' property.`);
@@ -55,13 +56,13 @@ export async function* createReader<T>({
 
 	for (const filename of filenames) {
 		try {
-			const contents: Uint8Array = await new Promise((resolve, reject) => {
+			const content: Uint8Array = await new Promise((resolve, reject) => {
 				fs.readFile(filename, null, (err, data) => {
 					if (err) reject(err);
 					else resolve(data);
 				});
 			});
-			yield await parse(contents, filename);
+			yield await parse(content, filename);
 		} catch (error) {
 			await onError(error);
 		}

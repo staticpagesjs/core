@@ -5,8 +5,8 @@ import { createWriter } from './create-writer.js';
 
 export namespace staticPages {
 	export interface Route<F = unknown, T = unknown> {
-		from: Iterable<F> | AsyncIterable<F> | createReader.Options<F>;
-		to: { (data: AsyncIterable<T>): MaybePromise<void>; } | createWriter.Options<T>;
+		from?: Iterable<F> | AsyncIterable<F> | createReader.Options<F>;
+		to?: { (data: AsyncIterable<T>): MaybePromise<void>; } | createWriter.Options<T>;
 		controller?(data: F): MaybePromise<undefined | T | Iterable<T> | AsyncIterable<T>>;
 	}
 }

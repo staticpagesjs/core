@@ -7,8 +7,8 @@ export namespace createWriter {
 	export interface Options<T> {
 		fs?: Filesystem;
 		cwd?: string;
-		render(data: T): MaybePromise<Uint8Array | string>;
 		name?(data: T): MaybePromise<string>;
+		render?(data: T): MaybePromise<Uint8Array | string>;
 		onError?(error: unknown): MaybePromise<void>;
 	}
 }
@@ -17,14 +17,23 @@ const defaultNamer = <T>(data: T) => {
 	if (!!data && typeof data === 'object' && 'url' in data && typeof data.url === 'string') {
 		return data.url.concat('.html');
 	}
-	return 'unnamed.html';
+	throw new Error(`Missing 'url' field in the document.`);
+};
+
+const defaultRenderer = <T>(data: T) => {
+	if (!!data && typeof data === 'object' && 'content' in data && (
+		typeof data.content === 'string' || data.content instanceof Uint8Array
+	)) {
+		return data.content;
+	}
+	throw new Error(`Missing 'content' field in the document.`);
 };
 
 export function createWriter<T>({
 	fs = nodeFs,
-	cwd = '.',
-	render,
+	cwd = 'public',
 	name = defaultNamer,
+	render = defaultRenderer,
 	onError = (error: unknown) => { throw error; },
 }: createWriter.Options<T>) {
 	if (!isFilesystem(fs)) throw new TypeError(`Expected 'Backend' implementation at 'backend' property.`);
@@ -58,10 +67,10 @@ export function createWriter<T>({
 					})
 				});
 
-				const contents = await render(data);
+				const content = await render(data);
 
 				await new Promise((resolve, reject) => {
-					fs.writeFile(filepath, contents, (err) => {
+					fs.writeFile(filepath, content, (err) => {
 						if (err) reject(err);
 						else resolve(undefined);
 					})

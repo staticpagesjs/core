@@ -5,8 +5,6 @@
 ![npms.io (quality)](https://img.shields.io/npms-io/quality-score/@static-pages/core?label=quality)
 ![Maintenance](https://img.shields.io/maintenance/yes/2024)
 
-This package contains only the core; this means it does not provide CLI support, parsers, renderers and backends. For a complete environment see [@static-pages/starter](https://www.npmjs.com/package/@static-pages/starter).
-
 Yet another static pages generator?
 Yes! Because I browsed the whole jamstack scene, but could not find one which
 1. can read input from any source (YAML, JSON, front-matter style markdowns, database etc.)
@@ -31,28 +29,12 @@ For detailed information, visit the [project page](https://staticpagesjs.github.
 
 ```js
 import staticPages from '@static-pages/core';
-// Handles filesystem operations
-import nodefs from '@static-pages/nodefs';
-// Guess & parse files by their extension
-import autoparse from '@static-pages/autoparse';
-// Renders twig style templates for us
 import twig from '@static-pages/twig';
-
-const fsBackend = nodefs({
-    cwd: 'path/to/project/root'
-});
 
 // Default options for every `Route` via .with() call.
 const generate = staticPages.with({
-    from: {
-        backend: fsBackend,
-        parse: autoparse,
-    },
     to: {
-        backend: fsBackend,
-        cwd: 'dist', // output directory
         render: twig({
-            backend: fsBackend,
             viewsDir: 'path/to/views/folder'
         }),
     },
@@ -111,8 +93,8 @@ Each route consists of a `from`, `to` and optionally a `controller` property mat
 
 ```ts
 interface Route<F, T> {
-    from: Iterable<F> | AsyncIterable<F> | CreateReaderOptions<F>;
-    to: { (data: AsyncIterable<T>): MaybePromise<void>; } | CreateWriterOptions<T>;
+    from?: Iterable<F> | AsyncIterable<F> | CreateReaderOptions<F>;
+    to?: { (data: AsyncIterable<T>): MaybePromise<void>; } | CreateWriterOptions<T>;
     controller?(data: F): MaybePromise<undefined | T | Iterable<T> | AsyncIterable<T>>;
 }
 
@@ -120,7 +102,7 @@ type MaybePromise<T> = T | Promise<T>;
 
 interface CreateReaderOptions<T> {
     // Handles file operations
-    backend: Backend;
+    fs?: Filesystem;
     // Current working directory
     cwd?: string;
     // File patterns to include
@@ -135,21 +117,82 @@ interface CreateReaderOptions<T> {
 
 interface CreateWriterOptions<T> {
     // Handles file operations
-    backend: Backend;
+    fs?: Filesystem;
     // Current working directory
     cwd?: string;
     // Callback that renders the document into a page
-    render(data: T): MaybePromise<Uint8Array | string>;
+    render?(data: T): MaybePromise<Uint8Array | string>;
     // Callback that retrieves the filename (URL) of a page
     name?(data: T): MaybePromise<string>;
     // Called on error
     onError?(error: unknown): MaybePromise<void>;
 }
 
-interface Backend {
-    tree(dirname: string): MaybePromise<Iterable<string> | AsyncIterable<string>>;
-    read(filename: string): MaybePromise<Uint8Array | string>;
-    write(filename: string, data: Uint8Array | string): MaybePromise<void>;
+interface Stats {
+	isFile(): boolean;
+	isDirectory(): boolean;
+}
+
+interface Dirent {
+	name: string;
+	path: string;
+	isFile(): boolean;
+	isDirectory(): boolean;
+}
+
+interface Filesystem {
+	readdir(
+		path: string | URL,
+		options: {
+			encoding: 'utf8';
+			withFileTypes: false;
+			recursive: boolean;
+		},
+		callback: (err: Error | null, files: string[]) => void,
+	): void;
+
+	readdir(
+		path: string | URL,
+		options: {
+			encoding: 'utf8';
+			withFileTypes: true;
+			recursive: boolean;
+		},
+		callback: (err: Error | null, files: Dirent[]) => void,
+	): void;
+
+	readFile(
+		path: string | URL,
+		options: {
+			encoding: 'utf8';
+		},
+		callback: (err: Error | null, data: string) => void
+	): void;
+
+	readFile(
+		path: string | URL,
+		options: null,
+		callback: (err: Error | null, data: Uint8Array) => void
+	): void;
+
+	stat(
+		path: string | URL,
+		callback: (err: Error | null, stats: Stats) => void
+	): void;
+
+	mkdir(
+		path: string | URL,
+		options: {
+			recursive: true;
+		},
+		callback: (err: Error | null, path?: string) => void
+	): void;
+
+	writeFile(
+		path: string | URL,
+		data: string | Uint8Array,
+		callback: (err: Error | null) => void
+	): void;
 }
 ```
 
@@ -178,13 +221,16 @@ These only works as fallback values, you can override every value later.
 If a `from` or `to` parameter is a plain object in both defaults and later at the route definition they will be merged (see usage example).
 
 ### `CreateReaderOptions` built-in default parameters when not provided
-- `cwd`: `'.'`
-- `parse`: `JSON.parse`
+- `fs`: the nodejs `fs` module
+- `cwd`: `'pages'`
+- `parse`: automatically parse `json`, `yaml`, `yml`, `md` or `markdown` extensions with `yaml` and `gray-matter` packages.
 - `onError`: `(err) => { throw err; }`
 
 ### `CreateWriterOptions` built-in default parameters when not provided
-- `cwd`: `'.'`
+- `fs`: the nodejs `fs` module
+- `cwd`: `'public'`
 - `name`: `(data) => data.url`
+- `render`: `(data) => data.content`
 - `onError`: `(err) => { throw err; }`
 
 
