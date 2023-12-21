@@ -27,7 +27,11 @@
     "watch:cjs": "npm run build:cjs && tsc --outDir cjs --module commonjs --watch",
     "lint": "eslint",
     "test": "mocha",
-    "coverage": "c8 -r text -r text-summary -r lcov npm test"
+    "coverage": "c8 -r text -r text-summary -r lcov --include \"esm/*\" npm test"
+  },
+  "dependencies": {
+    "gray-matter": "^4.0.3",
+    "yaml": "^2.3.4"
   },
   "devDependencies": {
     "@types/micromatch": "^4.0.4",
@@ -62,9 +66,5 @@
     "view",
     "template",
     "controller"
-  ],
-  "dependencies": {
-    "gray-matter": "^4.0.3",
-    "yaml": "^2.3.4"
-  }
+  ]
 }
