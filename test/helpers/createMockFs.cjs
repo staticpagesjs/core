@@ -4,7 +4,7 @@ module.exports = {
 	createMockFs(files, output = {}) {
 		const dirs = new Set();
 		return {
-			readdir(file, opts, cb) {
+			readdir(dir, opts, cb) {
 				const entries = Object.keys(files)
 					.map((k) => ({
 						name: path.basename(k),
