@@ -125,7 +125,7 @@ describe('Static Pages CreateReader Tests', () => {
 		assert.deepStrictEqual(recieved, expected);
 	});
 
-	it('can handle errors', async () => {
+	it('can handle errors silently', async () => {
 		const input = Object.fromEntries(
 			createSequence(5)
 				.map(i => createFileEntry(`file-${i}`, `content-${i}`, 'json'))
@@ -235,6 +235,17 @@ describe('Static Pages CreateReader Tests', () => {
 		}, { message: `Expected 'function', recieved 'number' at 'parse' property.` });
 	});
 
+	it('should throw when the default parser recieves an unknown file format', async () => {
+		await assert.rejects(async () => {
+			const reader = createReader({
+				fs: createMockFs({ 'pages/myfile.abc': 'abc' }),
+			});
+
+			await reader.next();
+
+		}, { message: `Could not parse document with 'abc' extension.` });
+	});
+
 	it('should throw when "onError" recieves a non callable', async () => {
 		await assert.rejects(async () => {
 			const reader = createReader({
@@ -245,5 +256,33 @@ describe('Static Pages CreateReader Tests', () => {
 			await reader.next();
 
 		}, { message: `Expected 'function', recieved 'number' at 'onError' property.` });
+	});
+
+	it('should handle when the "fs.readdir" throws', async () => {
+		await assert.rejects(async () => {
+			const mockFs = createMockFs({});
+			mockFs.readdir = function(dir, opts, cb) { cb(new Error('Some error thrown.')); };
+
+			const reader = createReader({
+				fs: mockFs,
+			});
+
+			await reader.next();
+
+		}, { message: `Some error thrown.` });
+	});
+
+	it('should handle when the "fs.readFile" throws', async () => {
+		await assert.rejects(async () => {
+			const mockFs = createMockFs({ 'pages/file': 'content' });
+			mockFs.readFile = function(file, opts, cb) { cb(new Error('Some error thrown.')); };
+
+			const reader = createReader({
+				fs: mockFs,
+			});
+
+			await reader.next();
+
+		}, { message: `Some error thrown.` });
 	});
 });

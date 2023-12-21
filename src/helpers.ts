@@ -72,4 +72,4 @@ export const isFilesystem = (x: unknown): x is Filesystem => !!x && typeof x ===
 export const isIterable = <T>(x: unknown): x is Iterable<T> => !!x && typeof x === 'object' && Symbol.iterator in x && typeof x[Symbol.iterator] === 'function';
 export const isAsyncIterable = <T>(x: unknown): x is AsyncIterable<T> => !!x && typeof x === 'object' && Symbol.asyncIterator in x && typeof x[Symbol.asyncIterator] === 'function';
 
-export const getType = (x: unknown): string => typeof x === 'object' ? (x ? 'object' : 'null') : typeof x;
+export const getType = (x: unknown): string => typeof x === 'object' ? (x ? (Array.isArray(x) ? 'array' : 'object') : 'null') : typeof x;

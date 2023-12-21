@@ -1,146 +1,208 @@
 import assert from 'assert';
 import { createWriter } from '../esm/index.js';
 
+import { createSequence } from './helpers/createSequence.cjs';
 import { createMockFs } from './helpers/createMockFs.cjs';
 import { createFileEntry } from './helpers/createFileEntry.cjs';
 
-const mockFs = createMockFs(Object.fromEntries([createFileEntry('some/file1', 'one')]));
-
-const createMockBackend = () => {
-	const impl = {
-		tree(){ return ['1', '2']; },
-		read(f){ return { '1': '"one"', '2': '"two"' }[f]; },
-		write(f, c){ impl.output.push([f, c]); },
-		output: [],
-	};
-	return impl;
-};
-
 describe('Static Pages CreateWriter Tests', () => {
-	// it('successfully writes with minimal configuration', async () => {
-	// 	const input = [{ url: 'one', body: '1' }, { url: 'two', body: '2' }];
-	// 	const expected = [
-	// 		['./one.html', '{"url":"one","body":"1"}'],
-	// 		['./two.html', '{"url":"two","body":"2"}']
-	// 	];
+	it('successfully writes with minimal configuration', async () => {
+		const input = createSequence(5)
+				.map(i => createFileEntry(`file-${i}`, `content-${i}`))
+				.map(([k, v]) => v);
+		const expected = Object.fromEntries(
+			createSequence(5)
+				.map(i => [`public/file-${i}.html`, `content-${i}`])
+		);
+		const output = {};
+		const mockFs = createMockFs({}, output);
 
-	// 	const mockBackend = createMockBackend();
-	// 	const writer = createWriter({
-	// 		fs: mockBackend,
-	// 		render: JSON.stringify
-	// 	});
+		const writer = createWriter({
+			fs: mockFs,
+		});
 
-	// 	await writer(input);
+		await writer(input);
 
-	// 	assert.deepStrictEqual(mockBackend.output, expected);
-	// });
+		assert.deepStrictEqual(output, expected);
+	});
 
-	// it('when no url it names the output unnamed.html', async () => {
-	// 	const input = [{ body: '1' }];
-	// 	const expected = [
-	// 		['./unnamed.html', '{"body":"1"}']
-	// 	];
+	it('should throw when url field is missing', async () => {
+		await assert.rejects(async () => {
+			const input = createSequence(5)
+				.map(i => {
+					const ent = createFileEntry(`file-${i}`, `content-${i}`);
+					delete ent[1].url;
+					return ent;
+				})
+				.map(([k, v]) => v);
+			const output = {};
+			const mockFs = createMockFs({}, output);
 
-	// 	const mockBackend = createMockBackend();
-	// 	const writer = createWriter({
-	// 		fs: mockBackend,
-	// 		render: JSON.stringify
-	// 	});
+			const writer = createWriter({
+				fs: mockFs,
+			});
 
-	// 	await writer(input);
+			await writer(input);
+		}, { message: `Missing 'url' field in the document.` });
+	});
 
-	// 	assert.deepStrictEqual(mockBackend.output, expected);
-	// });
+	it('should throw when content field is missing', async () => {
+		await assert.rejects(async () => {
+			const input = createSequence(5)
+				.map(i => {
+					const ent = createFileEntry(`file-${i}`, `content-${i}`);
+					delete ent[1].content;
+					return ent;
+				})
+				.map(([k, v]) => v);
+			const output = {};
+			const mockFs = createMockFs({}, output);
 
-	// it('can handle errors', async () => {
-	// 	const expected = 'Some error thrown.';
-	// 	let actual = null;
-	// 	const input = [{ body: '1' }];
-	// 	const writer = createWriter({
-	// 		fs: createMockBackend(),
-	// 		render() { throw new Error('Some error thrown.'); },
-	// 		onError(error) { actual = error.message; }
-	// 	});
-	// 	await writer(input);
-	// 	assert.deepStrictEqual(actual, expected);
-	// });
+			const writer = createWriter({
+				fs: mockFs,
+			});
 
-	// it('should throw on error with default configuration', async () => {
-	// 	await assert.rejects(async () => {
-	// 		const input = [{ body: '1' }];
-	// 		const writer = createWriter({
-	// 			fs: createMockBackend(),
-	// 			render() { throw new Error('Some error thrown.'); },
-	// 		});
-	// 		await writer(input);
-	// 	}, { message: `Some error thrown.` });
-	// });
+			await writer(input);
+		}, { message: `Missing 'content' field in the document.` });
+	});
 
-	// it('should throw when "backend" recieves an an invalid type', async () => {
-	// 	await assert.rejects(async () => {
-	// 		createWriter({
-	// 			fs: 1,
-	// 			render: JSON.stringify
-	// 		});
-	// 	}, { message: `Expected 'Backend' implementation at 'backend' property.` });
-	// });
+	it('can handle errors silently', async () => {
+		const input = createSequence(5)
+			.map(i => createFileEntry(`file-${i}`, `content-${i}`))
+			.map(([k, v]) => v);
 
-	// it('should throw when "cwd" recieves an invalid type', async () => {
-	// 	await assert.rejects(async () => {
-	// 		createWriter({
-	// 			fs: createMockBackend(),
-	// 			render: JSON.stringify,
-	// 			cwd: 123
-	// 		});
-	// 	}, { message: `Expected 'string', recieved 'number' at 'cwd' property.` });
-	// });
+		const expected = 'Some error thrown.';
+		let output = null;
+		const writer = createWriter({
+			fs: createMockFs({}),
+			render() { throw new Error('Some error thrown.'); },
+			onError(error) { output = error.message; }
+		});
 
-	// it('should throw when "cwd" recieves an empty string', async () => {
-	// 	await assert.rejects(async () => {
-	// 		createWriter({
-	// 			fs: createMockBackend(),
-	// 			render: JSON.stringify,
-	// 			cwd: ''
-	// 		});
-	// 	}, { message: `Expected non-empty string at 'cwd'.` });
-	// });
+		await writer(input);
 
-	// it('should throw when "render" recieves an invalid type', async () => {
-	// 	await assert.rejects(async () => {
-	// 		createWriter({
-	// 			fs: createMockBackend(),
-	// 			render: 123
-	// 		});
-	// 	}, { message: `Expected 'function', recieved 'number' at 'render' property.` });
-	// });
+		assert.deepStrictEqual(output, expected);
+	});
 
-	// it('should throw when "name" recieves an invalid type', async () => {
-	// 	await assert.rejects(async () => {
-	// 		createWriter({
-	// 			fs: createMockBackend(),
-	// 			render: JSON.stringify,
-	// 			name: 123
-	// 		});
-	// 	}, { message: `Expected 'function', recieved 'number' at 'name' property.` });
-	// });
+	it('should throw on error with default configuration', async () => {
+		await assert.rejects(async () => {
+			const input = createSequence(5)
+				.map(i => createFileEntry(`file-${i}`, `content-${i}`))
+				.map(([k, v]) => v);
 
-	// it('should throw when "onError" recieves an invalid type', async () => {
-	// 	await assert.rejects(async () => {
-	// 		createWriter({
-	// 			fs: createMockBackend(),
-	// 			render: JSON.stringify,
-	// 			onError: 123
-	// 		});
-	// 	}, { message: `Expected 'function', recieved 'number' at 'onError' property.` });
-	// });
+			const writer = createWriter({
+				fs: createMockFs({}),
+				render() { throw new Error('Some error thrown.'); },
+			});
 
-	// it('should throw when invalid type recieved as callback parameter', async () => {
-	// 	await assert.rejects(async () => {
-	// 		const writer = createWriter({
-	// 			fs: createMockBackend(),
-	// 			render: JSON.stringify
-	// 		});
-	// 		await writer(1);
-	// 	}, { message: `Expected 'Iterable' or 'AsyncIterable' at callback.` });
-	// });
+			await writer(input);
+
+		}, { message: `Some error thrown.` });
+	});
+
+	it('should throw when "fs" recieves an an invalid type', async () => {
+		await assert.rejects(async () => {
+			createWriter({
+				fs: 1,
+			});
+		}, { message: `Expected Node FS compatible implementation at 'fs' property.` });
+	});
+
+	it('should throw when "cwd" recieves an invalid type', async () => {
+		await assert.rejects(async () => {
+			createWriter({
+				fs: createMockFs({}),
+				cwd: 123
+			});
+		}, { message: `Expected 'string', recieved 'number' at 'cwd' property.` });
+	});
+
+	it('should throw when "cwd" recieves an empty string', async () => {
+		await assert.rejects(async () => {
+			createWriter({
+				fs: createMockFs({}),
+				cwd: ''
+			});
+		}, { message: `Expected non-empty string at 'cwd'.` });
+	});
+
+	it('should throw when "render" recieves an invalid type', async () => {
+		await assert.rejects(async () => {
+			createWriter({
+				fs: createMockFs({}),
+				render: 123
+			});
+		}, { message: `Expected 'function', recieved 'number' at 'render' property.` });
+	});
+
+	it('should throw when "name" recieves an invalid type', async () => {
+		await assert.rejects(async () => {
+			createWriter({
+				fs: createMockFs({}),
+				name: 123
+			});
+		}, { message: `Expected 'function', recieved 'number' at 'name' property.` });
+	});
+
+	it('should throw when "onError" recieves an invalid type', async () => {
+		await assert.rejects(async () => {
+			createWriter({
+				fs: createMockFs({}),
+				onError: 123
+			});
+		}, { message: `Expected 'function', recieved 'number' at 'onError' property.` });
+	});
+
+	it('should throw when invalid type recieved as callback parameter', async () => {
+		await assert.rejects(async () => {
+			const writer = createWriter({
+				fs: createMockFs({}),
+			});
+			await writer(1);
+		}, { message: `Expected 'Iterable' or 'AsyncIterable' at callback.` });
+	});
+
+	it('should handle mkdir errors', async () => {
+		await assert.rejects(async () => {
+			const input = createSequence(5)
+					.map(i => createFileEntry(`file-${i}`, `content-${i}`))
+					.map(([k, v]) => v);
+			const expected = Object.fromEntries(
+				createSequence(5)
+					.map(i => [`public/file-${i}.html`, `content-${i}`])
+			);
+			const output = {};
+			const mockFs = createMockFs({}, output);
+			mockFs.mkdir = function (file, opts, cb) { cb(new Error('Some error thrown')); };
+
+			const writer = createWriter({
+				fs: mockFs,
+			});
+
+			await writer(input);
+
+		}, { message: `Some error thrown` });
+	});
+
+	it('should handle writeFile errors', async () => {
+		await assert.rejects(async () => {
+			const input = createSequence(5)
+					.map(i => createFileEntry(`file-${i}`, `content-${i}`))
+					.map(([k, v]) => v);
+			const expected = Object.fromEntries(
+				createSequence(5)
+					.map(i => [`public/file-${i}.html`, `content-${i}`])
+			);
+			const output = {};
+			const mockFs = createMockFs({}, output);
+			mockFs.writeFile = function (file, data, cb) { cb(new Error('Some error thrown')); };
+
+			const writer = createWriter({
+				fs: mockFs,
+			});
+
+			await writer(input);
+
+		}, { message: `Some error thrown` });
+	});
 });
