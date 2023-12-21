@@ -34,7 +34,7 @@ export function createWriter<T>({
 	render = defaultRenderer,
 	onError = (error: unknown) => { throw error; },
 }: createWriter.Options<T> = {}) {
-	if (!isFilesystem(fs)) throw new TypeError(`Expected 'Backend' implementation at 'backend' property.`);
+	if (!isFilesystem(fs)) throw new TypeError(`Expected Node FS compatible implementation at 'fs' property.`);
 	if (typeof cwd !== 'string') throw new TypeError(`Expected 'string', recieved '${getType(cwd)}' at 'cwd' property.`);
 	if (!cwd) throw new TypeError(`Expected non-empty string at 'cwd'.`);
 	if (typeof render !== 'function') throw new TypeError(`Expected 'function', recieved '${getType(render)}' at 'render' property.`);

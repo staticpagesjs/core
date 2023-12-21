@@ -1,21 +1,27 @@
 import assert from 'assert';
 import { createReader } from '../esm/index.js';
 
-const mockBackend = {
-	tree(){ return ['1', '2']; },
-	read(f){ return { '1': '"one"', '2': '"two"' }[f]; },
-	write(){}
-};
+import { createSequence } from './helpers/createSequence.cjs';
+import { createMockFs } from './helpers/createMockFs.cjs';
+import { createFileEntry } from './helpers/createFileEntry.cjs';
 
 describe('Static Pages CreateReader Tests', () => {
 	it('successfully reads with minimal configuration', async () => {
-		const expected = ['one', 'two'];
-		const recieved = [];
+		const input = Object.fromEntries(
+			createSequence(5)
+				.map(i => createFileEntry(`file-${i}`, `content-${i}`, 'json'))
+		);
+		const expected = createSequence(5)
+			.map(i => ({
+				url: `file-${i}`,
+				content: `content-${i}`,
+			}));
 
 		const reader = createReader({
-			backend: mockBackend,
+			fs: createMockFs(input),
 		});
 
+		const recieved = [];
 		for await (const item of reader) {
 			recieved.push(item);
 		}
@@ -24,14 +30,23 @@ describe('Static Pages CreateReader Tests', () => {
 	});
 
 	it('can use pattern based filtering', async () => {
-		const expected = ['two'];
-		const recieved = [];
+		const input = Object.fromEntries(
+			createSequence(5)
+				.map(i => createFileEntry(`file-${i}`, `content-${i}`, 'json'))
+		);
+		const expected = createSequence(5)
+			.filter(i => [0,2,4].includes(i))
+			.map(i => ({
+				url: `file-${i}`,
+				content: `content-${i}`,
+			}));
 
 		const reader = createReader({
-			backend: mockBackend,
-			pattern: '2'
+			fs: createMockFs(input),
+			pattern: 'file-@(0|2|4).*'
 		});
 
+		const recieved = [];
 		for await (const item of reader) {
 			recieved.push(item);
 		}
@@ -40,14 +55,69 @@ describe('Static Pages CreateReader Tests', () => {
 	});
 
 	it('can use ignore pattern based filtering', async () => {
-		const expected = ['two'];
-		const recieved = [];
+		const input = Object.fromEntries(
+			createSequence(5)
+				.map(i => createFileEntry(`file-${i}`, `content-${i}`, 'json'))
+		);
+		const expected = createSequence(5)
+			.filter(i => [0,2,4].includes(i))
+			.map(i => ({
+				url: `file-${i}`,
+				content: `content-${i}`,
+			}));
 
 		const reader = createReader({
-			backend: mockBackend,
-			ignore: '1'
+			fs: createMockFs(input),
+			ignore: 'file-@(1|3).*'
 		});
 
+		const recieved = [];
+		for await (const item of reader) {
+			recieved.push(item);
+		}
+
+		assert.deepStrictEqual(recieved, expected);
+	});
+
+	it('can parse yaml files', async () => {
+		const input = Object.fromEntries(
+			createSequence(5)
+				.map(i => createFileEntry(`file-${i}`, `content-${i}`, 'yaml'))
+		);
+		const expected = createSequence(5)
+			.map(i => ({
+				url: `file-${i}`,
+				content: `content-${i}`,
+			}));
+
+		const reader = createReader({
+			fs: createMockFs(input),
+		});
+
+		const recieved = [];
+		for await (const item of reader) {
+			recieved.push(item);
+		}
+
+		assert.deepStrictEqual(recieved, expected);
+	});
+
+	it('can parse markdown files', async () => {
+		const input = Object.fromEntries(
+			createSequence(5)
+				.map(i => createFileEntry(`file-${i}`, `content-${i}`, 'md'))
+		);
+		const expected = createSequence(5)
+			.map(i => ({
+				url: `file-${i}`,
+				content: `content-${i}`,
+			}));
+
+		const reader = createReader({
+			fs: createMockFs(input),
+		});
+
+		const recieved = [];
 		for await (const item of reader) {
 			recieved.push(item);
 		}
@@ -56,12 +126,17 @@ describe('Static Pages CreateReader Tests', () => {
 	});
 
 	it('can handle errors', async () => {
-		const expected = 'Some error thrown.';
-		let recieved = null;
+		const input = Object.fromEntries(
+			createSequence(5)
+				.map(i => createFileEntry(`file-${i}`, `content-${i}`, 'json'))
+		);
 
+		const expected = 'Some error thrown.';
+
+		let recieved = null;
 		const reader = createReader({
-			backend: mockBackend,
-			parse() { throw new Error('Some error thrown.'); },
+			fs: createMockFs(input),
+			parse() { throw new Error(expected); },
 			onError(error) {
 				recieved = error.message;
 			}
@@ -74,8 +149,13 @@ describe('Static Pages CreateReader Tests', () => {
 
 	it('should throw with default settings on reading/parsing errors', async () => {
 		await assert.rejects(async () => {
+			const input = Object.fromEntries(
+				createSequence(5)
+					.map(i => createFileEntry(`file-${i}`, `content-${i}`, 'json'))
+			);
+
 			const reader = createReader({
-				backend: mockBackend,
+				fs: createMockFs(input),
 				parse() { throw new Error('Some error thrown.'); },
 			});
 
@@ -84,36 +164,21 @@ describe('Static Pages CreateReader Tests', () => {
 		}, { message: `Some error thrown.` });
 	});
 
-	it('should throw when "backend.tree" returns non iterable', async () => {
-		await assert.rejects(async () => {
-			const reader = createReader({
-				backend: {
-					tree(){ return 123; }, // should be iterable
-					read(){ return 789; }, // should be string | UInt8Array
-					write(){}
-				},
-			});
-
-			await reader.next();
-
-		}, { message: `Expected 'Iterable' or 'AsyncIterable' at 'backend.tree()' call.` });
-	});
-
 	it('should throw when "backend" recieves an invalid type', async () => {
 		await assert.rejects(async () => {
 			const reader = createReader({
-				backend: 1,
+				fs: 1,
 			});
 
 			await reader.next();
 
-		}, { message: `Expected 'Backend' implementation at 'backend' property.` });
+		}, { message: `Expected Node FS compatible implementation at 'fs' property.` });
 	});
 
 	it('should throw when "cwd" recieves an empty string', async () => {
 		await assert.rejects(async () => {
 			const reader = createReader({
-				backend: mockBackend,
+				fs: createMockFs({}),
 				cwd: ''
 			});
 
@@ -125,7 +190,7 @@ describe('Static Pages CreateReader Tests', () => {
 	it('should throw when "cwd" recieves a non string value', async () => {
 		await assert.rejects(async () => {
 			const reader = createReader({
-				backend: mockBackend,
+				fs: createMockFs({}),
 				cwd: 123
 			});
 
@@ -137,7 +202,7 @@ describe('Static Pages CreateReader Tests', () => {
 	it('should throw when "pattern" recieves a non string and non array value', async () => {
 		await assert.rejects(async () => {
 			const reader = createReader({
-				backend: mockBackend,
+				fs: createMockFs({}),
 				pattern: 123
 			});
 
@@ -149,7 +214,7 @@ describe('Static Pages CreateReader Tests', () => {
 	it('should throw when "ignore" recieves a non string and non array value', async () => {
 		await assert.rejects(async () => {
 			const reader = createReader({
-				backend: mockBackend,
+				fs: createMockFs({}),
 				ignore: 123
 			});
 
@@ -161,7 +226,7 @@ describe('Static Pages CreateReader Tests', () => {
 	it('should throw when "parse" recieves a non callable', async () => {
 		await assert.rejects(async () => {
 			const reader = createReader({
-				backend: mockBackend,
+				fs: createMockFs({}),
 				parse: 123
 			});
 
@@ -173,7 +238,7 @@ describe('Static Pages CreateReader Tests', () => {
 	it('should throw when "onError" recieves a non callable', async () => {
 		await assert.rejects(async () => {
 			const reader = createReader({
-				backend: mockBackend,
+				fs: createMockFs({}),
 				onError: 123
 			});
 

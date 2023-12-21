@@ -24,7 +24,7 @@ export async function* createReader<T>({
 	parse = autoparse,
 	onError = (error: unknown) => { throw error; },
 }: createReader.Options<T> = {}) {
-	if (!isFilesystem(fs)) throw new TypeError(`Expected Node FS implementation at 'backend' property.`);
+	if (!isFilesystem(fs)) throw new TypeError(`Expected Node FS compatible implementation at 'fs' property.`);
 	if (typeof cwd !== 'string') throw new TypeError(`Expected 'string', recieved '${getType(cwd)}' at 'cwd' property.`);
 	if (!cwd) throw new TypeError(`Expected non-empty string at 'cwd'.`);
 	if (typeof pattern !== 'undefined' && typeof pattern !== 'string' && !Array.isArray(pattern)) throw new TypeError(`Expected 'string' or 'string[]', recieved '${getType(pattern)}' at 'pattern' property.`);
