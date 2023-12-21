@@ -1,10 +1,12 @@
 import picomatch from 'picomatch';
-import type { MaybePromise, Backend } from './helpers.js';
-import { getType, isIterable, isAsyncIterable, isBackend } from './helpers.js';
+import type { MaybePromise, Filesystem } from './helpers.js';
+import { getType, isIterable, isAsyncIterable, isFilesystem } from './helpers.js';
+import { join, relative } from 'node:path';
+import nodeFs from 'node:fs';
 
 export namespace createReader {
 	export interface Options<T> {
-		backend: Backend;
+		fs?: Filesystem;
 		cwd?: string;
 		pattern?: string | string[];
 		ignore?: string | string[];
@@ -14,14 +16,14 @@ export namespace createReader {
 }
 
 export async function* createReader<T>({
-	backend,
+	fs = nodeFs,
 	cwd = '.',
 	pattern,
 	ignore,
-	parse = (content: Uint8Array | string) => JSON.parse(content.toString()),
+	parse = (content) => JSON.parse(content.toString()),
 	onError = (error: unknown) => { throw error; },
 }: createReader.Options<T>) {
-	if (!isBackend(backend)) throw new TypeError(`Expected 'Backend' implementation at 'backend' property.`);
+	if (!isFilesystem(fs)) throw new TypeError(`Expected Node FS implementation at 'backend' property.`);
 	if (typeof cwd !== 'string') throw new TypeError(`Expected 'string', recieved '${getType(cwd)}' at 'cwd' property.`);
 	if (!cwd) throw new TypeError(`Expected non-empty string at 'cwd'.`);
 	if (typeof pattern !== 'undefined' && typeof pattern !== 'string' && !Array.isArray(pattern)) throw new TypeError(`Expected 'string' or 'string[]', recieved '${getType(pattern)}' at 'pattern' property.`);
@@ -29,15 +31,21 @@ export async function* createReader<T>({
 	if (typeof parse !== 'function') throw new TypeError(`Expected 'function', recieved '${getType(parse)}' at 'parse' property.`);
 	if (typeof onError !== 'function') throw new TypeError(`Expected 'function', recieved '${getType(onError)}' at 'onError' property.`);
 
-	let filenames = await backend.tree(cwd);
-
-	if (!isIterable(filenames) && !isAsyncIterable(filenames))
-		throw new TypeError(`Expected 'Iterable' or 'AsyncIterable' at 'backend.tree()' call.`);
+	let filenames: string[] = await new Promise((resolve, reject) => {
+		fs.readdir(cwd, { encoding: 'utf8', recursive: true, withFileTypes: true }, (err, files) => {
+			if (err) reject(err);
+			else resolve(
+				files
+					.filter(x => x.isFile())
+					.map(x => join(relative(cwd, x.path), x.name))
+			);
+		});
+	});
 
 	if (typeof pattern !== 'undefined' || typeof ignore !== 'undefined') {
 		const filteredFilenames = [];
 		const isMatch = picomatch(pattern ?? '**/*', { ignore });
-		for await (const filename of filenames) {
+		for (const filename of filenames) {
 			if (isMatch(filename)) {
 				filteredFilenames.push(filename);
 			}
@@ -45,9 +53,15 @@ export async function* createReader<T>({
 		filenames = filteredFilenames;
 	}
 
-	for await (const filename of filenames) {
+	for (const filename of filenames) {
 		try {
-			yield await parse(await backend.read(filename), filename);
+			const contents: Uint8Array = await new Promise((resolve, reject) => {
+				fs.readFile(filename, null, (err, data) => {
+					if (err) reject(err);
+					else resolve(data);
+				});
+			});
+			yield await parse(contents, filename);
 		} catch (error) {
 			await onError(error);
 		}
@@ -55,5 +69,5 @@ export async function* createReader<T>({
 }
 
 createReader.isOptions = <T>(x: unknown): x is createReader.Options<T> => {
-	return !!x && typeof x === 'object' && 'backend' in x;
+	return !!x && typeof x === 'object' && !isIterable(x) && !isAsyncIterable(x);
 };

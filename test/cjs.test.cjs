@@ -1,7 +1,8 @@
 const assert = require('assert');
 const { staticPages } = require('../cjs/index.js');
+const { createMockFs } = require('./helpers/createMockFs.cjs');
 
-const seq = n => Array.from({ length: n }, (v, i) => ({ a: i }));
+const seq = n => Array.from({ length: n }, (v, i) => i);
 
 function createWriter() {
 	async function writer(items) {
@@ -31,23 +32,29 @@ describe('Static Pages CommonJS Tests', () => {
 	});
 
 	it('can use the "picomatch" package', async () => {
-		const input = seq(5);
-		const expected = seq(5).filter(x => [0,2,4].includes(x.a));
-		const writer = createWriter();
+		const input = Object.fromEntries(
+			seq(5)
+				.map(x => ['file-' + x, JSON.stringify({ url: 'file-' + x, body: x })])
+		);
+		const expected = Object.fromEntries(
+			seq(5)
+				.filter(x => [0,2,4].includes(x))
+				.map(x => ['./file-' + x + '.html', { url: 'file-' + x, body: x }])
+		);
+		const output = {};
+		const mockFs = createMockFs(input, output);
 
 		await staticPages({
 			from: {
-				backend: {
-					tree() { return input.map(x => '' + x.a); },
-					read(f) { return input[+f]; },
-					write(f, c) { /* not implemented */ }
-				},
-				pattern: '@(0|2|4)',
-				parse(x) { return x; }
+				fs: mockFs,
+				pattern: 'file-@(0|2|4)',
 			},
-			to: writer,
+			to: {
+				fs: mockFs,
+				render(d) { return d; },
+			},
 		});
 
-		assert.deepStrictEqual(writer.output, expected);
+		assert.deepStrictEqual(output, expected);
 	});
 });

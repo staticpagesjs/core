@@ -12,7 +12,7 @@ describe('Static Pages Throws Tests', () => {
 
 	it('should throw when "from" is not iterable', async () => {
 		await assert.rejects(async () => {
-			await staticPages({ from: { [Symbol.asyncIterator]: 1 }, to: () => undefined });
+			await staticPages({ from: false, to: () => undefined });
 		}, { message: `Expected 'Iterable' or 'AsyncIterable' at 'from' property.` });
 	});
 

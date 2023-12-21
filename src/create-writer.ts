@@ -1,9 +1,11 @@
-import type { MaybePromise, Backend } from './helpers.js';
-import { getType, isIterable, isAsyncIterable, isBackend } from './helpers.js';
+import type { MaybePromise, Filesystem } from './helpers.js';
+import { getType, isIterable, isAsyncIterable, isFilesystem } from './helpers.js';
+import { dirname } from 'node:path';
+import * as nodeFs from 'node:fs';
 
 export namespace createWriter {
 	export interface Options<T> {
-		backend: Backend;
+		fs?: Filesystem;
 		cwd?: string;
 		render(data: T): MaybePromise<Uint8Array | string>;
 		name?(data: T): MaybePromise<string>;
@@ -19,13 +21,13 @@ const defaultNamer = <T>(data: T) => {
 };
 
 export function createWriter<T>({
-	backend,
+	fs = nodeFs,
 	cwd = '.',
 	render,
 	name = defaultNamer,
 	onError = (error: unknown) => { throw error; },
 }: createWriter.Options<T>) {
-	if (!isBackend(backend)) throw new TypeError(`Expected 'Backend' implementation at 'backend' property.`);
+	if (!isFilesystem(fs)) throw new TypeError(`Expected 'Backend' implementation at 'backend' property.`);
 	if (typeof cwd !== 'string') throw new TypeError(`Expected 'string', recieved '${getType(cwd)}' at 'cwd' property.`);
 	if (!cwd) throw new TypeError(`Expected non-empty string at 'cwd'.`);
 	if (typeof render !== 'function') throw new TypeError(`Expected 'function', recieved '${getType(render)}' at 'render' property.`);
@@ -38,7 +40,32 @@ export function createWriter<T>({
 
 		for await (const data of iterable) {
 			try {
-				await backend.write(cwd + '/' + await name(data), await render(data));
+				const filepath = cwd + '/' + await name(data);
+				const dirpath = dirname(filepath);
+				await new Promise((resolve, reject) => {
+					fs.stat(dirpath, (err, stats) => {
+						if (err) {
+							fs.mkdir(dirpath, { recursive: true }, (err) => {
+								if (err) {
+									reject(err);
+								} else {
+									resolve(undefined);
+								}
+							});
+						} else {
+							resolve(undefined);
+						}
+					})
+				});
+
+				const contents = await render(data);
+
+				await new Promise((resolve, reject) => {
+					fs.writeFile(filepath, contents, (err) => {
+						if (err) reject(err);
+						else resolve(undefined);
+					})
+				});
 			} catch (error) {
 				await onError(error);
 			}
@@ -47,5 +74,5 @@ export function createWriter<T>({
 }
 
 createWriter.isOptions = <T>(x: unknown): x is createWriter.Options<T> => {
-	return !!x && typeof x === 'object' && 'backend' in x && 'render' in x;
+	return !!x && typeof x === 'object' && 'render' in x;
 };
