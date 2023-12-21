@@ -1,6 +1,6 @@
 {
   "name": "@static-pages/core",
-  "version": "6.0.0",
+  "version": "7.0.0-alpha.0",
   "description": "General purpose static pages renderer.",
   "type": "module",
   "main": "cjs/index.js",
@@ -13,7 +13,7 @@
     }
   },
   "engines": {
-    "node": ">=10.0.0",
+    "node": ">=16.0.0",
     "deno": ">=1.0.0"
   },
   "scripts": {
@@ -27,11 +27,34 @@
     "watch:cjs": "npm run build:cjs && tsc --outDir cjs --module commonjs --watch",
     "lint": "eslint",
     "test": "mocha",
-    "coverage": "c8 -r text -r text-summary -r lcov npm test"
+    "coverage": "c8 -r text -r text-summary -r lcov --include \"esm/*\" npm test"
   },
+  "dependencies": {
+    "gray-matter": "^4.0.3",
+    "yaml": "^2.3.4"
+  },
+  "devDependencies": {
+    "@types/micromatch": "^4.0.4",
+    "@types/node": "^20.10.5",
+    "@types/picomatch": "^2.3.2",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "c8": "^8.0.0",
+    "eslint": "^8.1.0",
+    "mocha": "^10.2.0",
+    "picomatch": "^3.0.1",
+    "rimraf": "^5.0.1",
+    "typescript": "^5.1.6"
+  },
+  "author": "László BULIK",
+  "license": "MPL-2.0",
+  "homepage": "https://staticpagesjs.github.io/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/staticpagesjs/core.git"
+  },
+  "bugs": {
+    "url": "https://github.com/staticpagesjs/core/issues"
   },
   "keywords": [
     "static",
@@ -43,21 +66,5 @@
     "view",
     "template",
     "controller"
-  ],
-  "author": "László BULIK",
-  "license": "MPL-2.0",
-  "bugs": {
-    "url": "https://github.com/staticpagesjs/core/issues"
-  },
-  "homepage": "https://staticpagesjs.github.io/",
-  "devDependencies": {
-    "@types/node": "^16.18.38",
-    "@typescript-eslint/eslint-plugin": "^5.3.0",
-    "@typescript-eslint/parser": "^5.3.0",
-    "c8": "^8.0.0",
-    "eslint": "^8.1.0",
-    "mocha": "^10.2.0",
-    "rimraf": "^5.0.1",
-    "typescript": "^5.1.6"
-  }
+  ]
 }

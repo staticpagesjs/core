@@ -1,8 +1,9 @@
 # CHANGELOG
 
-## 7.0.0
+## 7.0.0-alpha.0
+- New `CreateReader` and `CreateWriter` utilities available as `from` and `to` prop values.
 - Writers now recieve an AsyncIterable as the previous method made too much confusion.
-- Minor type defintion improvements.
+- Type defintion improvements.
 - Test suite switched from tap to mocha for now.
 - Coverage reports switched from nyc to c8.
 

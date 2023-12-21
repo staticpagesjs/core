@@ -3,68 +3,74 @@
 [![Build Status](https://github.com/staticpagesjs/core/actions/workflows/build.yaml/badge.svg)](https://github.com/staticpagesjs/core/actions/workflows/build.yaml)
 [![Coverage Status](https://coveralls.io/repos/github/staticpagesjs/core/badge.svg?branch=master)](https://coveralls.io/github/staticpagesjs/core?branch=master)
 ![npms.io (quality)](https://img.shields.io/npms-io/quality-score/@static-pages/core?label=quality)
-![Maintenance](https://img.shields.io/maintenance/yes/2023)
-
-This package contains only the core; this means it does not provide CLI support or readers and writers.
-You can import this library to your JS project then add your own controllers, readers and writers.
+![Maintenance](https://img.shields.io/maintenance/yes/2024)
 
 Yet another static pages generator?
 Yes! Because I browsed the whole jamstack scene, but could not find one which
-1. uses MVC pattern
-2. can read input from any source (YAML, JSON, front-matter style markdowns, database etc.)
-3. can render with any template engine (Twig, ejs, Pug, Mustache etc.)
-4. supports incremental builds
-5. has a flexible CLI tool (see [@static-pages/cli](https://www.npmjs.com/package/@static-pages/cli) on npm)
-6. has a Docker image (see [staticpages/cli](https://hub.docker.com/repository/docker/staticpages/cli) on dockerhub)
-7. written in JS (preferably TypeScript)
-8. easy to extend with JS code
-9. learning and using is easy (Gatsby, Hugo, Jekyll, Eleventy etc. are so cool but harder to learn and configure)
+1. can read input from any source (YAML, JSON, front-matter style markdowns, database etc.)
+2. can render with any template engine (Twig, ejs, Pug, Mustache etc.)
+3. written in JS (preferably TypeScript)
+4. easy to extend with JS code
+5. supports incremental builds
+6. uses MVC pattern
+7. learning and using is easy (Gatsby, Hugo, Jekyll, Eleventy etc. are so cool but harder to learn and configure)
 
 And because I wrote a ton of custom static generators before; I tought I can improve the concepts to a point where its (hopefully) useful for others.
 
 ## Where should I use this?
-This project targets small and medium sized projects. The rendering process tries to be as fast as possible so its also useful when you need performance.
+
+This project targets small and medium sized websites. The rendering process tries to be as fast as possible so its also useful when you need performance.
 
 ## Documentation
-[Visit the project page.](https://staticpagesjs.github.io/)
+
+For detailed information, visit the [project page](https://staticpagesjs.github.io/).
 
 ## Usage
-- __Readers__ provides an iterable list of page data.
-- __Controllers__ can manipulate and extend each data object.
-- __Writers__ render the final output for you.
 
 ```js
 import staticPages from '@static-pages/core';
-import markdownReader from '@static-pages/markdown-reader';
-import yamlReader from '@static-pages/yaml-reader';
-import twigWriter from '@static-pages/twig-writer';
+import twig from '@static-pages/twig';
 
-staticPages({
-    from: markdownReader({
-        pattern: "pages/**/*.md"
-    }),
-    to: twigWriter({
-        view: "content.html.twig",
-        viewsDir: "path/to/views/folder",
-        outDir: "path/to/output/folder",
-    }),
+// Default options for every `Route` via .with() call.
+const generate = staticPages.with({
+    to: {
+        render: twig({
+            viewsDir: 'path/to/views/folder'
+        }),
+    },
     controller(data) {
-        data.timestamp = new Date().toJSON(); // adds a "timestamp" variable
-        return data; // returning the data is required if you want to send it to the renderer
-    }
-}, {
-    from: yamlReader({ // assume we have the home page data in yaml format.
-        pattern: "home/*.yaml" // <-- reads home/en.yaml, home/de.yaml, home/fr.yaml etc.
-    }),
-    to: twigWriter({
-        view: "home.html.twig",
-        viewsDir: "path/to/views/folder",
-        outDir: "path/to/output/folder",
-    }),
-    controller(data) {
-        data.commitHash = yourGetCommitHashFn();
+        // adds a 'now' variable to the template context
+        data.now = new Date().toJSON();
+
+        // returning the data is required
         return data;
     }
+});
+
+// Generate every document type as a page.
+// One route equals one batch of similar pages.
+generate({
+    from: {
+        cwd: 'pages',
+        pattern: '**/*.md',
+    },
+}, {
+    // Any Iterable or AsyncIterable also accepted eg. an array
+    from: [
+        { title: 'About', url: 'about', body: 'About us content' },
+        { title: 'Privacy', url: 'privacy', body: 'Privacy content' },
+    ],
+}, {
+    from: {
+        cwd: 'home',
+        pattern: '*.yaml',
+    },
+    to: {
+        render: twig({
+            view: 'home.html.twig',
+            viewsDir: 'path/to/views/folder',
+        }),
+    },
 })
 .catch(error => {
     console.error('Error:', error);
@@ -72,22 +78,150 @@ staticPages({
 });
 ```
 
-## `staticPages(...routes: Route[]): Promise<void>`
-
-Each route consists of a `from`, `to` and optionally a `controller` property matching the definition below.
-
-```ts
-type Data = Record<string | symbol | number, unknown>;
-type Route = {
-    from: Iterable<Data> | AsyncIterable<Data>;
-    to(data: AsyncIterable<Data>): void | Promise<void>;
-    controller?(data: Data): undefined | Data | Iterable<Data> | AsyncIterable<Data> | Promise<undefined | Data | Iterable<Data> | AsyncIterable<Data>>;
-};
-```
-
 ### Notes
 
-The `controller` may return multiple `Data` objects; each will be rendered as a separate page. Alternatively it may return `undefined` to prevent the rendering of the current page.
+> The `controller` may return with multiple documents, each will be rendered as a separate page. Alternatively it may return `undefined` to prevent the rendering of the current document.
+
+> The `from` parameter can also recieve an `Iterable` or an `AsyncIterable` type!
+
+> The `to` parameter can also recieve a `function` that handles the document rendering and storing!
+
+
+## `staticPages(...routes: Route[]): Promise<void>`
+
+Each route consists of a `from`, `to` and a `controller` property matching the definition below.
+
+```ts
+interface Route<F, T> {
+    from?: Iterable<F> | AsyncIterable<F> | CreateReaderOptions<F>;
+    to?: { (data: AsyncIterable<T>): MaybePromise<void>; } | CreateWriterOptions<T>;
+    controller?(data: F): MaybePromise<undefined | T | Iterable<T> | AsyncIterable<T>>;
+}
+
+type MaybePromise<T> = T | Promise<T>;
+
+interface CreateReaderOptions<T> {
+    // Handles file operations, defaults to nodejs `fs` module
+    fs?: Filesystem;
+    // Current working directory
+    cwd?: string;
+    // File patterns to include
+    pattern?: string | string[];
+    // File patterns to exclude
+    ignore?: string | string[];
+    // Callback to parse a file content into an object
+    parse?(content: Uint8Array | string, filename: string): MaybePromise<T>;
+    // Called on error
+    onError?(error: unknown): MaybePromise<void>;
+}
+
+interface CreateWriterOptions<T> {
+    // Handles file operations, defaults to nodejs `fs` module
+    fs?: Filesystem;
+    // Current working directory
+    cwd?: string;
+    // Callback that renders the document into a page
+    render?(data: T): MaybePromise<Uint8Array | string>;
+    // Callback that retrieves the filename (URL) of a page
+    name?(data: T): MaybePromise<string>;
+    // Called on error
+    onError?(error: unknown): MaybePromise<void>;
+}
+
+interface Stats {
+	isFile(): boolean;
+	isDirectory(): boolean;
+}
+
+interface Dirent {
+	name: string;
+	path: string;
+	isFile(): boolean;
+	isDirectory(): boolean;
+}
+
+interface Filesystem {
+	readdir(
+		path: string | URL,
+		options: {
+			encoding: 'utf8';
+			withFileTypes: false;
+			recursive: boolean;
+		},
+		callback: (err: Error | null, files: string[]) => void,
+	): void;
+
+	readdir(
+		path: string | URL,
+		options: {
+			encoding: 'utf8';
+			withFileTypes: true;
+			recursive: boolean;
+		},
+		callback: (err: Error | null, files: Dirent[]) => void,
+	): void;
+
+	readFile(
+		path: string | URL,
+		options: {
+			encoding: 'utf8';
+		},
+		callback: (err: Error | null, data: string) => void
+	): void;
+
+	readFile(
+		path: string | URL,
+		options: null,
+		callback: (err: Error | null, data: Uint8Array) => void
+	): void;
+
+	stat(
+		path: string | URL,
+		callback: (err: Error | null, stats: Stats) => void
+	): void;
+
+	mkdir(
+		path: string | URL,
+		options: {
+			recursive: true;
+		},
+		callback: (err: Error | null, path?: string) => void
+	): void;
+
+	writeFile(
+		path: string | URL,
+		data: string | Uint8Array,
+		callback: (err: Error | null) => void
+	): void;
+}
+```
+
+### `Filesystem` interface
+
+When you use the `createReader` and `createWriter` interfaces to read and write documents, you can provide a `Filesystem` implementation. This interface is a minimal subset of the [NodeJS FS API](https://nodejs.org/api/fs.html). By default we use the built-in `node:fs` module.
+
+### `CreateReaderOptions` default parameters
+- `fs`: the nodejs `fs` module
+- `cwd`: `'pages'`
+- `parse`: automatically parse `json`, `yaml`, `yml`, `md` or `markdown` extensions with `yaml` and `gray-matter` packages.
+- `onError`: `(err) => { throw err; }`
+
+### `CreateWriterOptions` default parameters
+- `fs`: the nodejs `fs` module
+- `cwd`: `'public'`
+- `name`: `(data) => data.url`
+- `render`: `(data) => data.content`
+- `onError`: `(err) => { throw err; }`
+
+
+## `staticPages.with(defaults: Partial<Route>): { (...routes: Partial<Route>[]): Promise<void>; }`
+
+Preconfigures a separate instance of the `staticPages` call with the given default parameters.
+These only works as fallback values, you can override every value later.
+
+If a `from` or `to` parameter is a plain object in both defaults and later at the route definition they will be merged (see usage example).
+
 
 ## Missing a feature?
-Create an issue describing your needs. If it fits the scope of the project I will implement it or you can implement it your own and submit a pull request.
+Create an issue describing your needs!
+If it fits the scope of the project I will implement it.
