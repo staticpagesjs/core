@@ -226,54 +226,57 @@ describe('Static Pages General Tests', () => {
 		assert.deepStrictEqual(writer.output, expected);
 	});
 
-	// it('uses the CreateWriter interface correctly', async () => {
-	// 	const input = createSequence(5);
-	// 	const expected = createSequence(5);
-	// 	const output = [];
-	// 	const mockBackend = {
-	// 		tree() { return input; },
-	// 		read(f) { return f; },
-	// 		write(f, c) { output.push(c); }
-	// 	};
+	it('uses the CreateWriter interface correctly', async () => {
+		const input = Object.fromEntries(
+			createSequence(5)
+				.map(i => createFileEntry(`file-${i}`, `content-${i}`, 'json'))
+		);
+		const expected = Object.fromEntries(
+			createSequence(5)
+				.map(i => [`public/file-${i}.html`, `content-${i}`])
+		);
 
-	// 	await staticPages({
-	// 		from: {
-	// 			backend: mockBackend,
-	// 			parse(x) { return x; }
-	// 		},
-	// 		to: {
-	// 			backend: mockBackend,
-	// 			render(x) { return x; }
-	// 		},
-	// 	});
+		const output = {};
+		const mockFs = createMockFs(input, output);
 
-	// 	assert.deepStrictEqual(output, expected);
-	// });
+		await staticPages({
+			from: {
+				fs: mockFs,
+			},
+			to: {
+				fs: mockFs,
+			},
+		});
 
-	// it('the CreateWriter options can be merged using .with() calls', async () => {
-	// 	const input = createSequence(5);
-	// 	const expected = createSequence(5);
-	// 	const output = [];
-	// 	const mockBackend = {
-	// 		tree() { return input; },
-	// 		read(f) { return f; },
-	// 		write(f, c) { output.push(c); }
-	// 	};
+		assert.deepStrictEqual(output, expected);
+	});
 
-	// 	await staticPages.with({
-	// 		to: {
-	// 			backend: mockBackend
-	// 		}
-	// 	})({
-	// 		from: {
-	// 			backend: mockBackend,
-	// 			parse(x) { return x; }
-	// 		},
-	// 		to: {
-	// 			render(x) { return x; }
-	// 		},
-	// 	});
+	it('the CreateWriter options can be merged using .with() calls', async () => {
+		const input = Object.fromEntries(
+			createSequence(5)
+				.map(i => createFileEntry(`file-${i}`, `content-${i}`, 'json'))
+		);
+		const expected = Object.fromEntries(
+			createSequence(5)
+				.map(i => [`public/file-${i}.html`, `file-${i}`])
+		);
 
-	// 	assert.deepStrictEqual(output, expected);
-	// });
+		const output = {};
+		const mockFs = createMockFs(input, output);
+
+		await staticPages.with({
+			to: {
+				fs: mockFs,
+			}
+		})({
+			from: {
+				fs: mockFs,
+			},
+			to: {
+				render(x) { return x.url; }
+			},
+		});
+
+		assert.deepStrictEqual(output, expected);
+	});
 });
