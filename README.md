@@ -89,7 +89,7 @@ generate({
 
 ## `staticPages(...routes: Route[]): Promise<void>`
 
-Each route consists of a `from`, `to` and optionally a `controller` property matching the definition below.
+Each route consists of a `from`, `to` and a `controller` property matching the definition below.
 
 ```ts
 interface Route<F, T> {
@@ -101,7 +101,7 @@ interface Route<F, T> {
 type MaybePromise<T> = T | Promise<T>;
 
 interface CreateReaderOptions<T> {
-    // Handles file operations
+    // Handles file operations, defaults to nodejs `fs` module
     fs?: Filesystem;
     // Current working directory
     cwd?: string;
@@ -116,7 +116,7 @@ interface CreateReaderOptions<T> {
 }
 
 interface CreateWriterOptions<T> {
-    // Handles file operations
+    // Handles file operations, defaults to nodejs `fs` module
     fs?: Filesystem;
     // Current working directory
     cwd?: string;
@@ -196,21 +196,22 @@ interface Filesystem {
 }
 ```
 
-### Backend interface
+### `Filesystem` interface
 
-When you use the `createReader` and `createWriter` interfaces to read and write documents, you must provide a `Backend` implementation which provides the following members:
+When you use the `createReader` and `createWriter` interfaces to read and write documents, you can provide a `Filesystem` implementation. This interface is a minimal subset of the [NodeJS FS API](https://nodejs.org/api/fs.html). By default we use the built-in `node:fs` module.
 
-- `tree(dirname: string): MaybePromise<Iterable<string> | AsyncIterable<string>>;`
+### `CreateReaderOptions` default parameters
+- `fs`: the nodejs `fs` module
+- `cwd`: `'pages'`
+- `parse`: automatically parse `json`, `yaml`, `yml`, `md` or `markdown` extensions with `yaml` and `gray-matter` packages.
+- `onError`: `(err) => { throw err; }`
 
-Should list all filenames recursively in the `dirname` directory. All filenames should be relative to `dirname`.
-
-- `read(filename: string): MaybePromise<Uint8Array | string>;`
-
-Should retrieve the contents of a specified file. The `filename` is received exactly as provided by the `tree()` call, without any modifications.
-
-- `write(filename: string, data: Uint8Array | string): MaybePromise<void>;`
-
-Should persist data into a given file.
+### `CreateWriterOptions` default parameters
+- `fs`: the nodejs `fs` module
+- `cwd`: `'public'`
+- `name`: `(data) => data.url`
+- `render`: `(data) => data.content`
+- `onError`: `(err) => { throw err; }`
 
 
 ## `staticPages.with(defaults: Partial<Route>): { (...routes: Partial<Route>[]): Promise<void>; }`
@@ -220,19 +221,7 @@ These only works as fallback values, you can override every value later.
 
 If a `from` or `to` parameter is a plain object in both defaults and later at the route definition they will be merged (see usage example).
 
-### `CreateReaderOptions` built-in default parameters when not provided
-- `fs`: the nodejs `fs` module
-- `cwd`: `'pages'`
-- `parse`: automatically parse `json`, `yaml`, `yml`, `md` or `markdown` extensions with `yaml` and `gray-matter` packages.
-- `onError`: `(err) => { throw err; }`
-
-### `CreateWriterOptions` built-in default parameters when not provided
-- `fs`: the nodejs `fs` module
-- `cwd`: `'public'`
-- `name`: `(data) => data.url`
-- `render`: `(data) => data.content`
-- `onError`: `(err) => { throw err; }`
-
 
 ## Missing a feature?
-Create an issue describing your needs. If it fits the scope of the project I will implement it or you can implement it your own and submit a pull request.
+Create an issue describing your needs!
+If it fits the scope of the project I will implement it.
