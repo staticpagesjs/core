@@ -57,7 +57,7 @@ export async function* createReader<T>({
 	for (const filename of filenames) {
 		try {
 			const content: Uint8Array = await new Promise((resolve, reject) => {
-				fs.readFile(join(cwd, filename), null, (err, data) => {
+				fs.readFile(join(cwd, filename), (err, data) => {
 					if (err) reject(err);
 					else resolve(data);
 				});

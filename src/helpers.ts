@@ -33,20 +33,6 @@ export interface Filesystem {
 		callback: (err: Error | null, files: Dirent[]) => void,
 	): void;
 
-	readFile(
-		path: string | URL,
-		options: {
-			encoding: 'utf8';
-		},
-		callback: (err: Error | null, data: string) => void
-	): void;
-
-	readFile(
-		path: string | URL,
-		options: null,
-		callback: (err: Error | null, data: Uint8Array) => void
-	): void;
-
 	stat(
 		path: string | URL,
 		callback: (err: Error | null, stats: Stats) => void
@@ -58,6 +44,11 @@ export interface Filesystem {
 			recursive: true;
 		},
 		callback: (err: Error | null, path?: string) => void
+	): void;
+
+	readFile(
+		path: string | URL,
+		callback: (err: Error | null, data: Uint8Array) => void
 	): void;
 
 	writeFile(

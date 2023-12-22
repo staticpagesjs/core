@@ -15,7 +15,7 @@ module.exports = {
 				cb(null, entries);
 			},
 
-			readFile(file, opts, cb) {
+			readFile(file, cb) {
 				const dirent = Object.entries(files).find(([k, v]) => '' === path.relative(file, k));
 				if (dirent) cb(null, dirent[1]);
 				else cb(new Error('No file ' + file));

@@ -275,7 +275,7 @@ describe('Static Pages CreateReader Tests', () => {
 	it('should handle when the "fs.readFile" throws', async () => {
 		await assert.rejects(async () => {
 			const mockFs = createMockFs({ 'pages/file': 'content' });
-			mockFs.readFile = function(file, opts, cb) { cb(new Error('Some error thrown.')); };
+			mockFs.readFile = function(file, cb) { cb(new Error('Some error thrown.')); };
 
 			const reader = createReader({
 				fs: mockFs,
