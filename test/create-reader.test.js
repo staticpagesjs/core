@@ -306,6 +306,20 @@ describe('Static Pages CreateReader Tests', () => {
 		}, { message: `Some error thrown.` });
 	});
 
+	it('should handle when the "fs.stat" throws', async () => {
+		await assert.rejects(async () => {
+			const mockFs = createMockFs({ 'filename': 'content' });
+			mockFs.stat = function(file, cb) { cb(new Error('Some error thrown.')); };
+
+			const reader = createReader({
+				fs: mockFs,
+			});
+
+			await reader.next();
+
+		}, { message: `Some error thrown.` });
+	});
+
 	it('should handle when the "fs.readFile" throws', async () => {
 		await assert.rejects(async () => {
 			const mockFs = createMockFs({ 'pages/file': 'content' });

@@ -1,7 +1,7 @@
 import type { MaybePromise, Filesystem } from './helpers.js';
 import { getType, isIterable, isAsyncIterable, isFilesystem } from './helpers.js';
-import { dirname } from 'node:path';
 import * as nodeFs from 'node:fs';
+import { dirname } from 'node:path';
 
 export namespace createWriter {
 	export interface Options<T> {

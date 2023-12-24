@@ -2,7 +2,6 @@ import picomatch from 'picomatch';
 import { autoparse } from './autoparse.js';
 import type { MaybePromise, Filesystem } from './helpers.js';
 import { getType, isIterable, isAsyncIterable, isFilesystem } from './helpers.js';
-import { join, relative } from 'node:path';
 import nodeFs from 'node:fs';
 
 export namespace createReader {
@@ -33,13 +32,21 @@ export async function* createReader<T>({
 	if (typeof onError !== 'function') throw new TypeError(`Expected 'function', recieved '${getType(onError)}' at 'onError' property.`);
 
 	let filenames: string[] = await new Promise((resolve, reject) => {
-		fs.readdir(cwd, { encoding: 'utf8', recursive: true, withFileTypes: true }, (err, files) => {
-			if (err) reject(err);
-			else resolve(
-				files
-					.filter(x => x.isFile())
-					.map(x => join(relative(cwd, x.path), x.name))
-			);
+		fs.readdir(cwd, { recursive: true, withFileTypes: false, encoding: 'utf8' }, (err, entries) => {
+			if (err) return reject(err);
+			let filtered: string[] = [];
+			let processed = 0;
+			for (const entry of entries) {
+				fs.stat(cwd + '/' + entry, (err, stats) => {
+					if (err) return reject(err);
+					if (stats.isFile()) {
+						filtered.push(entry);
+					}
+					if (++processed === entries.length) {
+						return resolve(filtered);
+					}
+				});
+			}
 		});
 	});
 
@@ -57,7 +64,7 @@ export async function* createReader<T>({
 	for (const filename of filenames) {
 		try {
 			const content: Uint8Array = await new Promise((resolve, reject) => {
-				fs.readFile(join(cwd, filename), (err, data) => {
+				fs.readFile(cwd + '/' + filename, (err, data) => {
 					if (err) reject(err);
 					else resolve(data);
 				});

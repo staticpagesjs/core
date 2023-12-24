@@ -1,41 +1,20 @@
 export type MaybePromise<T> = T | Promise<T>;
 
-interface Stats {
-	isFile(): boolean;
-	isDirectory(): boolean;
-}
-
-interface Dirent {
-	name: string;
-	path: string;
-	isFile(): boolean;
-	isDirectory(): boolean;
-}
-
 export interface Filesystem {
+	stat(
+		path: string | URL,
+		callback: (err: Error | null, stats: { isFile(): boolean; isDirectory(): boolean; }) => void
+	): void;
+
 	readdir(
 		path: string | URL,
 		options: {
 			encoding: 'utf8';
+			// with file types option supported since 20.1.0, using stat() for each entry for now
 			withFileTypes: false;
 			recursive: boolean;
 		},
 		callback: (err: Error | null, files: string[]) => void,
-	): void;
-
-	readdir(
-		path: string | URL,
-		options: {
-			encoding: 'utf8';
-			withFileTypes: true;
-			recursive: boolean;
-		},
-		callback: (err: Error | null, files: Dirent[]) => void,
-	): void;
-
-	stat(
-		path: string | URL,
-		callback: (err: Error | null, stats: Stats) => void
 	): void;
 
 	mkdir(
