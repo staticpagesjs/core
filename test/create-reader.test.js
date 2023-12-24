@@ -79,6 +79,29 @@ describe('Static Pages CreateReader Tests', () => {
 		assert.deepStrictEqual(recieved, expected);
 	});
 
+	it('should set url property from filename when url is not present in the content', async () => {
+		const input = Object.fromEntries(
+			createSequence(5)
+				.map(i => [`pages/my/file-${i}.json`, `{"content":"content-${i}"}`])
+		);
+		const expected = createSequence(5)
+			.map(i => ({
+				url: `my/file-${i}`,
+				content: `content-${i}`,
+			}));
+
+		const reader = createReader({
+			fs: createMockFs(input),
+		});
+
+		const recieved = [];
+		for await (const item of reader) {
+			recieved.push(item);
+		}
+
+		assert.deepStrictEqual(recieved, expected);
+	});
+
 	it('can parse yaml files', async () => {
 		const input = Object.fromEntries(
 			createSequence(5)
@@ -233,6 +256,17 @@ describe('Static Pages CreateReader Tests', () => {
 			await reader.next();
 
 		}, { message: `Expected 'function', recieved 'number' at 'parse' property.` });
+	});
+
+	it('should throw when the default parser recieves a file without an extension', async () => {
+		await assert.rejects(async () => {
+			const reader = createReader({
+				fs: createMockFs({ 'pages/myfile': 'abc' }),
+			});
+
+			await reader.next();
+
+		}, { message: `Could not parse document without an extension.` });
 	});
 
 	it('should throw when the default parser recieves an unknown file format', async () => {
