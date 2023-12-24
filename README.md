@@ -128,19 +128,12 @@ interface CreateWriterOptions<T> {
     onError?(error: unknown): MaybePromise<void>;
 }
 
-interface Stats {
-	isFile(): boolean;
-	isDirectory(): boolean;
-}
-
-interface Dirent {
-	name: string;
-	path: string;
-	isFile(): boolean;
-	isDirectory(): boolean;
-}
-
 interface Filesystem {
+	stat(
+		path: string | URL,
+		callback: (err: Error | null, stats: { isFile(): boolean; isDirectory(): boolean; }) => void
+	): void;
+
 	readdir(
 		path: string | URL,
 		options: {
@@ -151,41 +144,17 @@ interface Filesystem {
 		callback: (err: Error | null, files: string[]) => void,
 	): void;
 
-	readdir(
-		path: string | URL,
-		options: {
-			encoding: 'utf8';
-			withFileTypes: true;
-			recursive: boolean;
-		},
-		callback: (err: Error | null, files: Dirent[]) => void,
-	): void;
-
-	readFile(
-		path: string | URL,
-		options: {
-			encoding: 'utf8';
-		},
-		callback: (err: Error | null, data: string) => void
-	): void;
-
-	readFile(
-		path: string | URL,
-		options: null,
-		callback: (err: Error | null, data: Uint8Array) => void
-	): void;
-
-	stat(
-		path: string | URL,
-		callback: (err: Error | null, stats: Stats) => void
-	): void;
-
 	mkdir(
 		path: string | URL,
 		options: {
 			recursive: true;
 		},
 		callback: (err: Error | null, path?: string) => void
+	): void;
+
+	readFile(
+		path: string | URL,
+		callback: (err: Error | null, data: Uint8Array) => void
 	): void;
 
 	writeFile(
@@ -203,7 +172,7 @@ When you use the `createReader` and `createWriter` interfaces to read and write 
 ### `CreateReaderOptions` default parameters
 - `fs`: the nodejs `fs` module
 - `cwd`: `'pages'`
-- `parse`: automatically parse `json`, `yaml`, `yml`, `md` or `markdown` extensions with `yaml` and `gray-matter` packages.
+- `parse`: *see About the default `parse` function*
 - `onError`: `(err) => { throw err; }`
 
 ### `CreateWriterOptions` default parameters
@@ -212,6 +181,16 @@ When you use the `createReader` and `createWriter` interfaces to read and write 
 - `name`: `(data) => data.url`
 - `render`: `(data) => data.content`
 - `onError`: `(err) => { throw err; }`
+
+### About the default `parse` function
+
+When using the default parser, a file type will be guessed by the file extension.
+These could be `json`, `yaml`, `yml`, `md` or `markdown`.
+- `json` will be parsed with `JSON.parse`
+- `yaml` and `yml` will be parsed with the `yaml` package
+- `md` and `markdown` will be parsed with the `gray-matter` package
+
+When the document does not contain an `url` property, this function will create one containing the filename without extension.
 
 
 ## `staticPages.with(defaults: Partial<Route>): { (...routes: Partial<Route>[]): Promise<void>; }`
