@@ -21,7 +21,9 @@ describe('Static Pages CreateWriter Tests', () => {
 			fs: mockFs,
 		});
 
-		await writer(input);
+		for await (const item of input) {
+			await writer(item);
+		}
 
 		assert.deepStrictEqual(output, expected);
 	});
@@ -42,7 +44,10 @@ describe('Static Pages CreateWriter Tests', () => {
 				fs: mockFs,
 			});
 
-			await writer(input);
+			for await (const item of input) {
+				await writer(item);
+			}
+
 		}, { message: `Missing 'url' field in the document.` });
 	});
 
@@ -62,7 +67,10 @@ describe('Static Pages CreateWriter Tests', () => {
 				fs: mockFs,
 			});
 
-			await writer(input);
+			for await (const item of input) {
+				await writer(item);
+			}
+
 		}, { message: `Missing 'content' field in the document.` });
 	});
 
@@ -79,7 +87,9 @@ describe('Static Pages CreateWriter Tests', () => {
 			onError(error) { output = error.message; }
 		});
 
-		await writer(input);
+		for await (const item of input) {
+			await writer(item);
+		}
 
 		assert.deepStrictEqual(output, expected);
 	});
@@ -95,7 +105,9 @@ describe('Static Pages CreateWriter Tests', () => {
 				render() { throw new Error('Some error thrown.'); },
 			});
 
-			await writer(input);
+			for await (const item of input) {
+				await writer(item);
+			}
 
 		}, { message: `Some error thrown.` });
 	});
@@ -153,15 +165,6 @@ describe('Static Pages CreateWriter Tests', () => {
 		}, { message: `Expected 'function', recieved 'number' at 'onError' property.` });
 	});
 
-	it('should throw when invalid type recieved as callback parameter', async () => {
-		await assert.rejects(async () => {
-			const writer = createWriter({
-				fs: createMockFs({}),
-			});
-			await writer(1);
-		}, { message: `Expected 'Iterable' or 'AsyncIterable' at callback.` });
-	});
-
 	it('should handle mkdir errors', async () => {
 		await assert.rejects(async () => {
 			const input = createSequence(5)
@@ -179,7 +182,9 @@ describe('Static Pages CreateWriter Tests', () => {
 				fs: mockFs,
 			});
 
-			await writer(input);
+			for await (const item of input) {
+				await writer(item);
+			}
 
 		}, { message: `Some error thrown` });
 	});
@@ -201,7 +206,9 @@ describe('Static Pages CreateWriter Tests', () => {
 				fs: mockFs,
 			});
 
-			await writer(input);
+			for await (const item of input) {
+				await writer(item);
+			}
 
 		}, { message: `Some error thrown` });
 	});

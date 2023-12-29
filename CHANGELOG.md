@@ -1,16 +1,16 @@
 # CHANGELOG
 
-## 7.0.0-alpha.0
-- New `CreateReader` and `CreateWriter` utilities available as `from` and `to` prop values.
-- Writers now recieve an AsyncIterable as the previous method made too much confusion.
+## 7.0.0
+- New `CreateReader` and `CreateWriter` utilities available as `route.from` and `route.to` prop values.
+- Reverted `route.to` callbacks to work as it was in `v4.0.0`. The function is called per doucument, recieving the current page data.
 - Type defintion improvements.
 - Test suite switched from tap to mocha for now.
 - Coverage reports switched from nyc to c8.
 
 
 ## 6.0.0
-- Adopt JS iterator protocol for the writer callbacks.
-- Removed the `.teardown()` call on the writer when iteration finished. The iterator protocol gives better tools to express these logic.
+- Use JS iterator protocol for the `route.to` callbacks.
+- Removed the `.teardown()` call on the `route.to` when iteration finished.
 
 
 ## 5.0.3
@@ -23,7 +23,7 @@
 - Updated maintenance badge in README.md.
 
 ## 5.0.0
-- Added a `.teardown()` call on the writer which is executed when iteration finished.
+- Added a `.teardown()` call on the `route.to` which is executed when iteration finished.
 - Provided better type definitions.
 
 

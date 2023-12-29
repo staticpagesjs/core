@@ -6,7 +6,7 @@ import { createWriter } from './create-writer.js';
 export namespace staticPages {
 	export interface Route<F = unknown, T = unknown> {
 		from?: Iterable<F> | AsyncIterable<F> | createReader.Options<F>;
-		to?: { (data: AsyncIterable<T>): MaybePromise<void>; } | createWriter.Options<T>;
+		to?: { (data: T): MaybePromise<void>; } | createWriter.Options<T>;
 		controller?(data: F): MaybePromise<undefined | T | Iterable<T> | AsyncIterable<T>>;
 	}
 }
@@ -65,17 +65,15 @@ export async function staticPages(...routes: staticPages.Route[]): Promise<void>
 		if (typeof controller !== 'undefined' && typeof controller !== 'function')
 			throw new TypeError(`Expected 'function', recieved '${getType(controller)}' at 'controller' property.`);
 
-		await to(asyncGenerator(from, controller));
-	}
-}
-
-async function* asyncGenerator<F, T>(items: Iterable<F> | AsyncIterable<F>, controller?: { (data: F): MaybePromise<undefined | T | Iterable<T> | AsyncIterable<T>>; }) {
-	for await (const item of items) {
-		const data = controller ? await controller(item) : item;
-		if (isIterable(data) || isAsyncIterable(data)) {
-			yield* data;
-		} else if (typeof data !== 'undefined') {
-			yield data;
+		for await (const data of from) {
+			const finalData = controller ? await controller(data) : data;
+			if (isIterable(finalData) || isAsyncIterable(finalData)) {
+				for await (const finalDataItem of finalData) {
+					await to(finalDataItem);
+				}
+			} else if (typeof finalData !== 'undefined') {
+				await to(finalData);
+			}
 		}
 	}
 }

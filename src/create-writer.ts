@@ -1,5 +1,5 @@
 import type { MaybePromise, Filesystem } from './helpers.js';
-import { getType, isIterable, isAsyncIterable, isFilesystem } from './helpers.js';
+import { getType, isFilesystem } from './helpers.js';
 import * as nodeFs from 'node:fs';
 import { dirname } from 'node:path';
 
@@ -41,41 +41,36 @@ export function createWriter<T>({
 	if (typeof name !== 'function') throw new TypeError(`Expected 'function', recieved '${getType(name)}' at 'name' property.`);
 	if (typeof onError !== 'function') throw new TypeError(`Expected 'function', recieved '${getType(onError)}' at 'onError' property.`);
 
-	return async function (iterable: Iterable<T> | AsyncIterable<T>) {
-		if (!isIterable(iterable) && !isAsyncIterable(iterable))
-			throw new TypeError(`Expected 'Iterable' or 'AsyncIterable' at callback.`);
+	return async function (data: T) {
+		try {
+			const filepath = cwd + '/' + await name(data);
+			const dirpath = dirname(filepath);
+			await new Promise((resolve, reject) => {
+				fs.stat(dirpath, (err, stats) => {
+					if (err) {
+						fs.mkdir(dirpath, { recursive: true }, (err) => {
+							if (err) {
+								reject(err);
+							} else {
+								resolve(undefined);
+							}
+						});
+					} else {
+						resolve(undefined);
+					}
+				})
+			});
 
-		for await (const data of iterable) {
-			try {
-				const filepath = cwd + '/' + await name(data);
-				const dirpath = dirname(filepath);
-				await new Promise((resolve, reject) => {
-					fs.stat(dirpath, (err, stats) => {
-						if (err) {
-							fs.mkdir(dirpath, { recursive: true }, (err) => {
-								if (err) {
-									reject(err);
-								} else {
-									resolve(undefined);
-								}
-							});
-						} else {
-							resolve(undefined);
-						}
-					})
-				});
+			const content = await render(data);
 
-				const content = await render(data);
-
-				await new Promise((resolve, reject) => {
-					fs.writeFile(filepath, content, (err) => {
-						if (err) reject(err);
-						else resolve(undefined);
-					})
-				});
-			} catch (error) {
-				await onError(error);
-			}
+			await new Promise((resolve, reject) => {
+				fs.writeFile(filepath, content, (err) => {
+					if (err) reject(err);
+					else resolve(undefined);
+				})
+			});
+		} catch (error) {
+			await onError(error);
 		}
 	};
 }

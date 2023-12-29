@@ -93,8 +93,8 @@ Each route consists of a `from`, `to` and a `controller` property matching the d
 
 ```ts
 interface Route<F, T> {
-    from?: Iterable<F> | AsyncIterable<F> | CreateReaderOptions<F>;
-    to?: { (data: AsyncIterable<T>): MaybePromise<void>; } | CreateWriterOptions<T>;
+    from?: Iterable<F> | AsyncIterable<F> | createReader.Options<F>;
+    to?: { (data: T): MaybePromise<void>; } | createWriter.Options<T>;
     controller?(data: F): MaybePromise<undefined | T | Iterable<T> | AsyncIterable<T>>;
 }
 
