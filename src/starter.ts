@@ -28,3 +28,24 @@ export async function staticPages(...routes: Route[]): Promise<void> {
 		)
 	);
 }
+
+const isIterable = <T>(x: unknown): x is Iterable<T> => !!x && typeof x === 'object' && Symbol.iterator in x && typeof x[Symbol.iterator] === 'function';
+const isAsyncIterable = <T>(x: unknown): x is AsyncIterable<T> => !!x && typeof x === 'object' && Symbol.asyncIterator in x && typeof x[Symbol.asyncIterator] === 'function';
+
+export function configureStaticPages({ from, to, controller }: Partial<Route>) {
+    return function modifiedStaticPages(...routes: Partial<Route>[]): Promise<void> {
+        return staticPages(...routes.map(route => ({
+            from: route.from && typeof route.from === 'object' && !isIterable(route.from) && !isAsyncIterable(route.from) &&
+                  from && typeof from === 'object' && !isIterable(from) && !isAsyncIterable(from)
+                  ? { ...from, ...route.from }
+                  : route.from !== undefined ? route.from : from,
+
+            to: route.to && typeof route.to === 'object' &&
+                to && typeof to === 'object'
+                ? { ...to, ...route.to }
+                : route.to !== undefined ? route.to : to,
+
+            controller: route.controller !== undefined ? route.controller : controller,
+        })));
+    };
+}
