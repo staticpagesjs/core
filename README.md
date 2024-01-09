@@ -17,6 +17,9 @@ Yes! Because I browsed the whole jamstack scene, but could not find one which
 
 And because I wrote a ton of custom static generators before; I tought I can improve the concepts to a point where its (hopefully) useful for others.
 
+This project is structured as a toolkit, published under the `@static-pages` namespace on NPM.
+In most cases the [@static-pages/starter](https://www.npmjs.com/package/@static-pages/starter) is a good point to begin.
+
 ## Where should I use this?
 
 This project targets small and medium sized websites. The rendering process tries to be as fast as possible so its also useful when you need performance.

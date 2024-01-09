@@ -1,17 +1,19 @@
-import type { MaybePromise, Filesystem } from './helpers.js';
+import type { Filesystem } from './helpers.js';
 import { getType, isFilesystem } from './helpers.js';
 import * as nodeFs from 'node:fs';
 import { dirname } from 'node:path';
 
-export namespace createWriter {
-	export interface Options<T> {
-		fs?: Filesystem;
-		cwd?: string;
-		name?(data: T): MaybePromise<string>;
-		render?(data: T): MaybePromise<Uint8Array | string>;
-		onError?(error: unknown): MaybePromise<void>;
-	}
-}
+export type CreateWriterOptions<T> = {
+	fs?: Filesystem;
+	cwd?: string;
+	name?(data: T): string | Promise<string>;
+	render?(data: T): Uint8Array | string | Promise<Uint8Array | string>;
+	onError?(error: unknown): void | Promise<void>;
+} | undefined;
+
+export const isCreateWriterOptions = <T>(x: unknown): x is CreateWriterOptions<T> => {
+	return x == undefined || (!!x && typeof x === 'object');
+};
 
 const defaultNamer = <T>(data: T) => {
 	if (!!data && typeof data === 'object' && 'url' in data && typeof data.url === 'string') {
@@ -33,7 +35,7 @@ export function createWriter<T>({
 	name = defaultNamer,
 	render = defaultRenderer,
 	onError = (error: unknown) => { throw error; },
-}: createWriter.Options<T> = {}) {
+}: CreateWriterOptions<T> = {}) {
 	if (!isFilesystem(fs)) throw new TypeError(`Expected Node FS compatible implementation at 'fs' property.`);
 	if (typeof cwd !== 'string') throw new TypeError(`Expected 'string', recieved '${getType(cwd)}' at 'cwd' property.`);
 	if (!cwd) throw new TypeError(`Expected non-empty string at 'cwd'.`);
@@ -74,7 +76,3 @@ export function createWriter<T>({
 		}
 	};
 }
-
-createWriter.isOptions = <T>(x: unknown): x is createWriter.Options<T> => {
-	return x == undefined || (!!x && typeof x === 'object');
-};
