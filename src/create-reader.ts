@@ -3,7 +3,7 @@ import type { Filesystem } from './helpers.js';
 import { getType, isIterable, isAsyncIterable, isFilesystem } from './helpers.js';
 import { parse as parseYAML } from 'yaml';
 import parseMarkdown from 'gray-matter';
-import nodeFs from 'node:fs';
+import * as nodeFs from 'node:fs';
 
 export type CreateReaderOptions<T> = {
 	fs?: Filesystem;
