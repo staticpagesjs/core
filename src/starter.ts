@@ -3,6 +3,8 @@ import { staticPages as staticPagesBase } from './static-pages.js';
 import { createReader, CreateReaderOptions, isCreateReaderOptions } from './create-reader.js';
 import { createWriter, CreateWriterOptions, isCreateWriterOptions } from './create-writer.js';
 
+export type { Filesystem } from './helpers.js';
+
 export interface Route<F = unknown, T = unknown> {
 	from?: RouteBase['from'] | CreateReaderOptions<F>;
 	to?: RouteBase['to'] | CreateWriterOptions<T>;
