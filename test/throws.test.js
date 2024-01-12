@@ -16,11 +16,17 @@ describe('Static Pages Throws Tests', () => {
 
 	it('should throw when "to" is not a function', async () => {
 		await assert.rejects(async () => {
-			await staticPages({ from: [], to: true });
-		}, { message: `Expected 'function', recieved 'boolean' at 'to' property.` });
+			await staticPages({ from: [], to: {} });
+		}, { message: `Expected 'function', recieved 'object' at 'to' property.` });
 	});
 
 	it('should throw when "controller" is not a function', async () => {
+		await assert.rejects(async () => {
+			await staticPages({ from: [], to: () => undefined, controller: [] });
+		}, { message: `Expected 'function', recieved 'array' at 'controller' property.` });
+	});
+
+	it('should throw when "controller" is not a function #2', async () => {
 		await assert.rejects(async () => {
 			await staticPages({ from: [], to: () => undefined, controller: 123 });
 		}, { message: `Expected 'function', recieved 'number' at 'controller' property.` });
