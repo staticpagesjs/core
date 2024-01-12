@@ -17,60 +17,48 @@ Yes! Because I browsed the whole jamstack scene, but could not find one which
 
 And because I wrote a ton of custom static generators before; I tought I can improve the concepts to a point where its (hopefully) useful for others.
 
+This project is structured as a toolkit, published under the [@static-pages](https://www.npmjs.com/search?q=%40static-pages) namespace on NPM.
+In most cases you should not use this core package directly, but the [@static-pages/starter](https://www.npmjs.com/package/@static-pages/starter) is a good point to begin with.
+
 ## Where should I use this?
 
 This project targets small and medium sized websites. The rendering process tries to be as fast as possible so its also useful when you need performance.
 
-## Documentation
-
-For detailed information, visit the [project page](https://staticpagesjs.github.io/).
-
 ## Usage
 
 ```js
+import fs from 'node:fs';
+import path from 'node:path';
 import staticPages from '@static-pages/core';
-import twig from '@static-pages/twig';
 
-// Default options for every `Route` via .with() call.
-const generate = staticPages.with({
-    to: {
-        render: twig({
-            viewsDir: 'path/to/views/folder'
-        }),
-    },
-    controller(data) {
-        // adds a 'now' variable to the template context
-        data.now = new Date().toJSON();
-
-        // returning the data is required
-        return data;
-    }
-});
-
-// Generate every document type as a page.
-// One route equals one batch of similar pages.
-generate({
-    from: {
-        cwd: 'pages',
-        pattern: '**/*.md',
-    },
-}, {
-    // Any Iterable or AsyncIterable also accepted eg. an array
+staticPages({
     from: [
-        { title: 'About', url: 'about', body: 'About us content' },
-        { title: 'Privacy', url: 'privacy', body: 'Privacy content' },
+        { title: 'About', url: 'about', content: 'About us content' },
+        { title: 'Privacy', url: 'privacy', content: 'Privacy content' },
     ],
+    controller(data) {
+        data.now = new Date().toJSON();
+        return data;
+    },
+    to({ title, url, content, now }) {
+        const fileName = path.join('public', url + '.html');
+        fs.mkdirSync(path.dirname(fileName), { recursive: true });
+        fs.writeFileSync(fileName, `<html><body><h1>${title}</h1><p>${content}</p><p>generated: ${now}</p></body></html>`);
+    }
 }, {
-    from: {
-        cwd: 'home',
-        pattern: '*.yaml',
+    from: fs.readdir('pages', { recursive: true })
+        .map(x => JSON.parse(fs.readFileSync(path.join('pages', x), 'utf8'))),
+    controller({ title, url, content }) {
+        return {
+            url: url,
+            content: `<html><body><h1>${title}</h1><p>${content}</p><p>generated: ${new Date().toJSON()}</p></body></html>`,
+        };
     },
-    to: {
-        render: twig({
-            view: 'home.html.twig',
-            viewsDir: 'path/to/views/folder',
-        }),
-    },
+    to({ url, content }) {
+        const fileName = path.join('public', url + '.html');
+        fs.mkdirSync(path.dirname(fileName), { recursive: true });
+        fs.writeFileSync(fileName, content);
+    }
 })
 .catch(error => {
     console.error('Error:', error);
@@ -82,124 +70,23 @@ generate({
 
 > The `controller` may return with multiple documents, each will be rendered as a separate page. Alternatively it may return `undefined` to prevent the rendering of the current document.
 
-> The `from` parameter can also recieve an `Iterable` or an `AsyncIterable` type!
+> The usage example above does a rough presentation only and not considered to be a production ready snippet. Helpers to read and write documents are provided in separate packages, eg. [@static-pages/io](https://www.npmjs.com/package/@static-pages/io).
 
-> The `to` parameter can also recieve a `function` that handles the document rendering and storing!
+## Documentation
 
+For detailed information, visit the [project page](https://staticpagesjs.github.io/).
 
-## `staticPages(...routes: Route[]): Promise<void>`
+### `staticPages(...routes: Route[]): Promise<void>`
 
 Each route consists of a `from`, `to` and a `controller` property matching the definition below.
 
 ```ts
 interface Route<F, T> {
-    from?: Iterable<F> | AsyncIterable<F> | createReader.Options<F>;
-    to?: { (data: T): MaybePromise<void>; } | createWriter.Options<T>;
-    controller?(data: F): MaybePromise<undefined | T | Iterable<T> | AsyncIterable<T>>;
-}
-
-type MaybePromise<T> = T | Promise<T>;
-
-interface CreateReaderOptions<T> {
-    // Handles file operations, defaults to nodejs `fs` module
-    fs?: Filesystem;
-    // Current working directory
-    cwd?: string;
-    // File patterns to include
-    pattern?: string | string[];
-    // File patterns to exclude
-    ignore?: string | string[];
-    // Callback to parse a file content into an object
-    parse?(content: Uint8Array | string, filename: string): MaybePromise<T>;
-    // Called on error
-    onError?(error: unknown): MaybePromise<void>;
-}
-
-interface CreateWriterOptions<T> {
-    // Handles file operations, defaults to nodejs `fs` module
-    fs?: Filesystem;
-    // Current working directory
-    cwd?: string;
-    // Callback that renders the document into a page
-    render?(data: T): MaybePromise<Uint8Array | string>;
-    // Callback that retrieves the filename (URL) of a page
-    name?(data: T): MaybePromise<string>;
-    // Called on error
-    onError?(error: unknown): MaybePromise<void>;
-}
-
-interface Filesystem {
-	stat(
-		path: string | URL,
-		callback: (err: Error | null, stats: { isFile(): boolean; isDirectory(): boolean; }) => void
-	): void;
-
-	readdir(
-		path: string | URL,
-		options: {
-			encoding: 'utf8';
-			withFileTypes: false;
-			recursive: boolean;
-		},
-		callback: (err: Error | null, files: string[]) => void,
-	): void;
-
-	mkdir(
-		path: string | URL,
-		options: {
-			recursive: true;
-		},
-		callback: (err: Error | null, path?: string) => void
-	): void;
-
-	readFile(
-		path: string | URL,
-		callback: (err: Error | null, data: Uint8Array) => void
-	): void;
-
-	writeFile(
-		path: string | URL,
-		data: string | Uint8Array,
-		callback: (err: Error | null) => void
-	): void;
+    from: Iterable<F> | AsyncIterable<F>;
+    to(data: T): void | Promise<void>;
+    controller?(data: F): undefined | T | Iterable<T> | AsyncIterable<T> | Promise<undefined | T | Iterable<T> | AsyncIterable<T>>;
 }
 ```
-
-### `Filesystem` interface
-
-When you use the `createReader` and `createWriter` interfaces to read and write documents, you can provide a `Filesystem` implementation. This interface is a minimal subset of the [NodeJS FS API](https://nodejs.org/api/fs.html). By default we use the built-in `node:fs` module.
-
-### `CreateReaderOptions` default parameters
-- `fs`: the nodejs `fs` module
-- `cwd`: `'pages'`
-- `parse`: *see About the default `parse` function*
-- `onError`: `(err) => { throw err; }`
-
-### `CreateWriterOptions` default parameters
-- `fs`: the nodejs `fs` module
-- `cwd`: `'public'`
-- `name`: `(data) => data.url`
-- `render`: `(data) => data.content`
-- `onError`: `(err) => { throw err; }`
-
-### About the default `parse` function
-
-When using the default parser, a file type will be guessed by the file extension.
-These could be `json`, `yaml`, `yml`, `md` or `markdown`.
-- `json` will be parsed with `JSON.parse`
-- `yaml` and `yml` will be parsed with the `yaml` package
-- `md` and `markdown` will be parsed with the `gray-matter` package
-
-When the document does not contain an `url` property, this function will create one containing the filename without extension.
-
-
-## `staticPages.with(defaults: Partial<Route>): { (...routes: Partial<Route>[]): Promise<void>; }`
-
-Preconfigures a separate instance of the `staticPages` call with the given default parameters.
-These only works as fallback values, you can override every value later.
-
-If a `from` or `to` parameter is a plain object in both defaults and later at the route definition they will be merged (see usage example).
-
 
 ## Missing a feature?
 Create an issue describing your needs!

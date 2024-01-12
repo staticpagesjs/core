@@ -1,7 +1,6 @@
 # CHANGELOG
 
 ## 7.0.0
-- New `CreateReader` and `CreateWriter` utilities available as `route.from` and `route.to` prop values.
 - Reverted `route.to` callbacks to work as it was in `v4.0.0`. The function is called per doucument, recieving the current page data.
 - Type defintion improvements.
 - Test suite switched from tap to mocha for now.
