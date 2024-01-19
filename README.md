@@ -42,8 +42,9 @@ staticPages({
     },
     to({ title, url, content, now }) {
         const fileName = path.join('public', url + '.html');
+        const fileContent = `<html><body><h1>${title}</h1><p>${content}</p><p>generated: ${now}</p></body></html>`;
         fs.mkdirSync(path.dirname(fileName), { recursive: true });
-        fs.writeFileSync(fileName, `<html><body><h1>${title}</h1><p>${content}</p><p>generated: ${now}</p></body></html>`);
+        fs.writeFileSync(fileName, fileContent);
     }
 }, {
     from: fs.readdir('pages', { recursive: true })
@@ -68,8 +69,6 @@ staticPages({
 
 ### Notes
 
-> The `controller` may return with multiple documents, each will be rendered as a separate page. Alternatively it may return `undefined` to prevent the rendering of the current document.
-
 > The usage example above does a rough presentation only and not considered to be a production ready snippet. Helpers to read and write documents are provided in separate packages, eg. [@static-pages/io](https://www.npmjs.com/package/@static-pages/io).
 
 ## Documentation
@@ -87,6 +86,8 @@ interface Route<F, T> {
     controller?(data: F): undefined | T | Iterable<T> | AsyncIterable<T> | Promise<undefined | T | Iterable<T> | AsyncIterable<T>>;
 }
 ```
+
+The `controller` may return with multiple documents, each will be rendered as a separate page. Alternatively it may return `undefined` to prevent the rendering of the current document.
 
 ## Missing a feature?
 Create an issue describing your needs!
