@@ -2,16 +2,16 @@ import assert from 'assert';
 import staticPages from '../esm/index.js';
 
 import { createSequence } from './helpers/createSequence.cjs';
-import { createMockWriter } from './helpers/createMockWriter.cjs';
-import { arrayToObjectStream } from './helpers/arrayToObjectStream.cjs';
+import { createWriter } from './helpers/createWriter.cjs';
 import { arrayToIterable } from './helpers/arrayToIterable.cjs';
 import { arrayToAsyncIterable } from './helpers/arrayToAsyncIterable.cjs';
+import { arrayToObjectStream } from './helpers/arrayToObjectStream.cjs';
 
 describe('Static Pages General Tests', () => {
 	it('passes through the input data with minimal configuration', async () => {
 		const input = createSequence(5);
 		const expected = createSequence(5);
-		const writer = createMockWriter();
+		const writer = createWriter();
 
 		await staticPages({
 			from: input,
@@ -24,8 +24,8 @@ describe('Static Pages General Tests', () => {
 	it('can recieve multiple routes', async () => {
 		const input = createSequence(5);
 		const expected = createSequence(5);
-		const writer1 = createMockWriter();
-		const writer2 = createMockWriter();
+		const writer1 = createWriter();
+		const writer2 = createWriter();
 
 		await staticPages({
 			from: input,
@@ -42,7 +42,7 @@ describe('Static Pages General Tests', () => {
 	it('works on iterable inputs', async () => {
 		const input = arrayToIterable(createSequence(5));
 		const expected = createSequence(5);
-		const writer = createMockWriter();
+		const writer = createWriter();
 
 		await staticPages({
 			from: input,
@@ -55,7 +55,7 @@ describe('Static Pages General Tests', () => {
 	it('works on async iterable inputs', async () => {
 		const input = arrayToAsyncIterable(createSequence(5));
 		const expected = createSequence(5);
-		const writer = createMockWriter();
+		const writer = createWriter();
 
 		await staticPages({
 			from: input,
@@ -68,7 +68,7 @@ describe('Static Pages General Tests', () => {
 	it('works on object stream inputs', async () => {
 		const input = arrayToObjectStream(createSequence(5));
 		const expected = createSequence(5);
-		const writer = createMockWriter();
+		const writer = createWriter();
 
 		await staticPages({
 			from: input,
@@ -81,7 +81,7 @@ describe('Static Pages General Tests', () => {
 	it('executes the controller which can alter the output', async () => {
 		const input = createSequence(5);
 		const expected = createSequence(5).map(x => x + 1);
-		const writer = createMockWriter();
+		const writer = createWriter();
 
 		await staticPages({
 			from: input,
@@ -99,7 +99,7 @@ describe('Static Pages General Tests', () => {
 			expected.push({ a: input[i] + 1 });
 			expected.push({ b: input[i] });
 		}
-		const writer = createMockWriter();
+		const writer = createWriter();
 
 		await staticPages({
 			from: input,
@@ -113,7 +113,7 @@ describe('Static Pages General Tests', () => {
 	it('controller can remove items from output', async () => {
 		const input = createSequence(5);
 		const expected = createSequence(5).filter(d => d % 2 === 0);
-		const writer = createMockWriter();
+		const writer = createWriter();
 
 		await staticPages({
 			from: input,
