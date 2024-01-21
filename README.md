@@ -46,21 +46,6 @@ staticPages({
         fs.mkdirSync(path.dirname(fileName), { recursive: true });
         fs.writeFileSync(fileName, fileContent);
     }
-}, {
-    from: fs.readdirSync('pages', { recursive: true }).map(
-        x => JSON.parse(fs.readFileSync(path.join('pages', x), 'utf8'))
-    ),
-    controller({ title, url, content }) {
-        return {
-            url: url,
-            content: `<html><body><h1>${title}</h1><p>${content}</p><p>generated: ${new Date().toJSON()}</p></body></html>`,
-        };
-    },
-    to({ url, content }) {
-        const fileName = path.join('public', url + '.html');
-        fs.mkdirSync(path.dirname(fileName), { recursive: true });
-        fs.writeFileSync(fileName, content);
-    }
 })
 .catch(error => {
     console.error('Error:', error);
