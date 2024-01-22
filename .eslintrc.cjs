@@ -30,5 +30,5 @@ module.exports = {
 		],
 		'@typescript-eslint/no-explicit-any': 'off',
 	},
-	'ignorePatterns': ['tests/'],
+	'ignorePatterns': ['*.js', '*.cjs', 'test'],
 };
