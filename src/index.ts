@@ -21,10 +21,10 @@ export async function staticPages(...routes: Route[]): Promise<void> {
 		if (typeof route !== 'object' || !route)
 			throw new TypeError(`Expected 'object', recieved '${getType(route)}'.`);
 
-		let { from, to, controller } = route;
+		const { from, to, controller } = route;
 
 		if (!isIterable(from) && !isAsyncIterable(from))
-			throw new TypeError(`Expected 'Iterable' or 'AsyncIterable' at 'from' property.`);
+			throw new TypeError('Expected \'Iterable\' or \'AsyncIterable\' at \'from\' property.');
 
 		if (typeof to !== 'function')
 			throw new TypeError(`Expected 'function', recieved '${getType(to)}' at 'to' property.`);
