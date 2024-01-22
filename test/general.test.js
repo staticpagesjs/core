@@ -1,5 +1,5 @@
-import assert from 'assert';
-import staticPages from '../esm/index.js';
+import assert from 'node:assert';
+import staticPages from '../index.js';
 
 import { createSequence } from './helpers/createSequence.cjs';
 import { createWriter } from './helpers/createWriter.cjs';

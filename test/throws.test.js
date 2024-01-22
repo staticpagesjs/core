@@ -1,5 +1,5 @@
-import assert from 'assert';
-import staticPages from '../esm/index.js';
+import assert from 'node:assert';
+import staticPages from '../index.js';
 
 describe('Static Pages Throws Tests', () => {
 	it('should throw when the route is not an object', async () => {
