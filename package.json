@@ -3,28 +3,34 @@
   "version": "7.0.0-beta.0",
   "description": "General purpose static pages renderer.",
   "type": "module",
-  "main": "cjs/index.js",
-  "module": "esm/index.js",
-  "types": "esm/index.d.ts",
+  "main": "./cjs/index.js",
+  "module": "./esm/index.js",
+  "types": "./esm/index.d.ts",
   "exports": {
     ".": {
+      "import": "./esm/index.js",
       "require": "./cjs/index.js",
-      "default": "./esm/index.js"
-    }
+      "types": "./types/index.d.ts"
+    },
+    "./package.json": "./package.json"
   },
   "engines": {
     "node": ">=16.0.0",
     "deno": ">=1.0.0"
   },
   "scripts": {
-    "prepack": "npm run build && npm run test",
+    "preversion": "npm run build && npm run test",
     "postversion": "git push && git push --tags",
-    "clean": "rimraf esm cjs coverage",
-    "build": "npm run build:esm && npm run build:cjs",
-    "build:esm": "tsc",
+    "clean": "rimraf esm cjs types coverage",
+    "prewatch:esm": "npm run build:esm",
     "watch:esm": "tsc --watch",
-    "build:cjs": "tsc --outDir cjs --module commonjs && echo { \"type\": \"commonjs\" }>cjs/package.json",
-    "watch:cjs": "npm run build:cjs && tsc --outDir cjs --module commonjs --watch",
+    "prewatch:cjs": "npm run build:cjs",
+    "watch:cjs": "tsc --outDir cjs --module commonjs --moduleResolution node --watch",
+    "build": "npm run build:esm && npm run build:cjs && npm run build:types",
+    "build:esm": "tsc",
+    "build:cjs": "tsc --outDir cjs --module commonjs --moduleResolution node",
+    "postbuild:cjs": "echo { \"type\": \"commonjs\" }>cjs/package.json",
+    "build:types": "tsc --outDir types --declaration --emitDeclarationOnly",
     "lint": "eslint",
     "test": "mocha",
     "coverage": "c8 -r text -r text-summary -r lcov --include \"esm/*\" npm test"
