@@ -2,7 +2,7 @@ const isIterable = <T>(x: unknown): x is Iterable<T> => !!x && typeof x === 'obj
 const isAsyncIterable = <T>(x: unknown): x is AsyncIterable<T> => !!x && typeof x === 'object' && Symbol.asyncIterator in x && typeof x[Symbol.asyncIterator] === 'function';
 const getType = (x: unknown): string => typeof x === 'object' ? (x ? (Array.isArray(x) ? 'array' : 'object') : 'null') : typeof x;
 
-export interface Route<F = unknown, T = unknown> {
+export interface Route<F = any, T = any> {
 	from: Iterable<F> | AsyncIterable<F>;
 	to(data: T): void | Promise<void>;
 	controller?(data: F): undefined | T | Iterable<T> | AsyncIterable<T> | Promise<undefined | T | Iterable<T> | AsyncIterable<T>>;
