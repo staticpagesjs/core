@@ -1,5 +1,5 @@
-const isIterable = <T>(x: unknown): x is Iterable<T> => !!x && typeof x === 'object' && Symbol.iterator in x && typeof x[Symbol.iterator] === 'function';
-const isAsyncIterable = <T>(x: unknown): x is AsyncIterable<T> => !!x && typeof x === 'object' && Symbol.asyncIterator in x && typeof x[Symbol.asyncIterator] === 'function';
+const isIterable = (x: any): x is Iterable<any> => !!x && typeof x === 'object' && typeof x[Symbol.iterator] === 'function';
+const isAsyncIterable = (x: any): x is AsyncIterable<any> => !!x && typeof x === 'object' && typeof x[Symbol.asyncIterator] === 'function';
 const getType = (x: unknown): string => typeof x === 'object' ? (x ? (Array.isArray(x) ? 'array' : 'object') : 'null') : typeof x;
 
 export interface Route<F = any, T = any> {
