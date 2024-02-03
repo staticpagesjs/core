@@ -36,7 +36,6 @@
     "chokidar": "^3.5.3",
     "eslint": "^8.1.0",
     "mocha": "^10.2.0",
-    "rimraf": "^5.0.1",
     "typescript": "^5.1.6"
   },
   "author": "László BULIK",
