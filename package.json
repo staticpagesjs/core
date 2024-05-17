@@ -26,7 +26,7 @@
     "coverage": "c8 -r text -r text-summary -r lcov --include \"**/*.mjs\" npm test",
     "lint": "eslint src",
     "prepublishOnly": "echo Default 'npm publish' disabled, use 'npm run publish' instead && exit 1",
-    "publish": "npm run build && npm run test && cd package && npm publish --dry-run",
+    "publish": "npm run build && npm run test && cd package && npm publish",
     "postversion": "git push && git push --tags"
   },
   "devDependencies": {
