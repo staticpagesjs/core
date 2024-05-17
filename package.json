@@ -1,16 +1,16 @@
 {
+  "private": true,
   "name": "@static-pages/core",
   "version": "7.0.0-beta.4",
   "description": "General purpose static pages renderer.",
-  "type": "module",
-  "module": "./index.js",
   "main": "./index.cjs",
-  "types": "./index.d.ts",
+  "module": "./index.mjs",
+  "types": "./index.d.mts",
   "exports": {
     ".": {
-      "import": "./index.js",
       "require": "./index.cjs",
-      "types": "./index.d.ts"
+      "import": "./index.mjs",
+      "types": "./index.d.mts"
     },
     "./package.json": "./package.json"
   },
@@ -19,14 +19,15 @@
     "deno": ">=1.0.0"
   },
   "scripts": {
-    "prepack": "npm run build && npm run test",
-    "postversion": "git push && git push --tags",
-    "clean": "node scripts/clean.js",
-    "build": "node scripts/build.js",
-    "watch": "node scripts/watch.js",
+    "clean": "node scripts/clean.mjs",
+    "build": "node scripts/build.mjs",
+    "watch": "node scripts/watch.mjs",
     "test": "mocha",
-    "coverage": "c8 -r text -r text-summary -r lcov --include \"*.js\" npm test",
-    "lint": "eslint src"
+    "coverage": "c8 -r text -r text-summary -r lcov --include \"**/*.mjs\" npm test",
+    "lint": "eslint src",
+    "prepublishOnly": "echo Default 'npm publish' disabled, use 'npm run publish' instead && exit 1",
+    "publish": "npm run build && npm run test && cd package && npm publish --dry-run",
+    "postversion": "git push && git push --tags"
   },
   "devDependencies": {
     "@types/node": "^20.11.5",
@@ -36,6 +37,7 @@
     "chokidar": "^3.5.3",
     "eslint": "^8.1.0",
     "mocha": "^10.2.0",
+    "semver": "^7.6.2",
     "typescript": "^5.1.6"
   },
   "author": "László BULIK",

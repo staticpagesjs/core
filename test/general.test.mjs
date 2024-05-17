@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import staticPages from '../index.js';
+import staticPages from '../package/index.mjs';
 
 import { createSequence } from './helpers/createSequence.cjs';
 import { createWriter } from './helpers/createWriter.cjs';

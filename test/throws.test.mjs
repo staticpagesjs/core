@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import staticPages from '../index.js';
+import staticPages from '../package/index.mjs';
 
 describe('Static Pages Throws Tests', () => {
 	it('should throw when the route is not an object', async () => {

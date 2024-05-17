@@ -1,5 +1,5 @@
 const assert = require('node:assert');
-const { staticPages } = require('../index.cjs');
+const { staticPages } = require('../package/index.cjs');
 
 const { createSequence } = require('./helpers/createSequence.cjs');
 const { createWriter } = require('./helpers/createWriter.cjs');
