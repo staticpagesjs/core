@@ -11,7 +11,7 @@ const tsc = (() => {
 	return (format, opts = {}) => {
 		opts.outDir = TSC_TEMP_DIR;
 		opts.module = format === 'cjs' ? 'CommonJS' : 'ESNext';
-		opts.moduleResolution = 'node';
+		opts.moduleResolution = 'node10';
 		try {
 			rmSync(TSC_TEMP_DIR, { force: true, recursive: true });
 			execSync(
