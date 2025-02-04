@@ -10,8 +10,7 @@ const tsc = (() => {
 	const tscBin = normalize('./node_modules/.bin/tsc');
 	return (format, opts = {}) => {
 		opts.outDir = TSC_TEMP_DIR;
-		opts.module = format === 'cjs' ? 'CommonJS' : 'ESNext';
-		opts.moduleResolution = 'node10';
+		opts.module = format === 'cjs' ? 'None' : 'Preserve';
 		try {
 			rmSync(TSC_TEMP_DIR, { force: true, recursive: true });
 			execSync(
@@ -22,7 +21,7 @@ const tsc = (() => {
 			for (const file of files) {
 				if (!file.isFile()) continue;
 
-				const source = join(file.path, file.name);
+				const source = join(file.parentPath ?? file.path, file.name);
 				const target = join(DIST_DIR, relative(TSC_TEMP_DIR, source)).slice(0, -3) + format.slice(0, 1) + source.slice(-2);
 				mkdirSync(dirname(target), { recursive: true });
 

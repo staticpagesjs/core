@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 let debounceChangesTimeout = null;
-watch(['{scripts,src}/**/*'], { ignoreInitial: false })
+watch(['scripts', 'src'], { ignoreInitial: false })
 	.addListener('all', () => {
 		if (debounceChangesTimeout) clearTimeout(debounceChangesTimeout);
 		debounceChangesTimeout = setTimeout(() => {
