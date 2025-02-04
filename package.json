@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "@static-pages/core",
-  "version": "7.0.1",
+  "version": "7.0.2",
   "description": "General purpose static pages renderer.",
   "main": "./index.cjs",
   "module": "./index.mjs",
